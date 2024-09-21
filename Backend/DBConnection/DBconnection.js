@@ -16,16 +16,20 @@
 
 import {MongoClient, ServerApiVersion} from "mongodb"
 
-const uri = "mongodb+srv://mosimkhan15102001:gXbxNu8lIpr6czQQ@kabutar-cluster.utvb1.mongodb.net/?retryWrites=true&w=majority&appName=kabutar-cluster";
+const uri = "mongodb+srv://mosimkhan15102001:gXbxNu8lIpr6czQQ@kabutar-cluster.utvb1.mongodb.net/?retryWrites=true&w=majority&appName=kabutar-cluster&tls=true";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: false,  // Set strict to false
+      deprecationErrors: true,
+    },
+    tlsAllowInvalidCertificates: true,  // This disables SSL validation
+  });
+  
 
 async function connectDB() {
   try {
