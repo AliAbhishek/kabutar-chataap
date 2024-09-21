@@ -29,6 +29,17 @@ app.use(cors({
 
 app.use(express.json())
 
+
+app.get("/", (req, res) => {
+    res.send("hiiiiiiiii")
+})
+app.get("/user1", (req, res) => {
+    res.send("user1")
+})
+app.post("/user1/login", (req, res) => {
+    res.send("login1")
+})
+
 app.use("/user", userRouter)
 app.use("/chat", chatRouter)
 app.use("/message", messageRouter)
@@ -59,15 +70,6 @@ let port = process.env.PORT
 
 //==================================================================================
 
-app.get("/", (req, res) => {
-    res.send("hiiiiiiiii")
-})
-app.get("/user", (req, res) => {
-    res.send("user")
-})
-app.post("/user/login", (req, res) => {
-    res.send("login")
-})
 
 
 const server = app.listen(port, async () => {
