@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install && npm install vite --save-dev && npm --prefix frontend install && npm --prefix frontend run build"
+    "build": "npm install && npm install --force  && npm --prefix frontend install --force && npm --prefix frontend run build"
 
   },
   "author": "Abhishek Ali",
