@@ -8,7 +8,7 @@ userRouter.post("/registration",upload.fields([{name:"pic",maxCount:1}]), userCo
 userRouter.post("/login",userController.login)
 
 
-userRouter.use(auth)
+// userRouter.use(auth)
 userRouter.get("/",userController.search)
 
 
