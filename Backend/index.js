@@ -10,7 +10,7 @@ import { notificationService } from "./Services/notificationService.js"
 import { authenticateSocket } from "./middlewares/UserAuthenticate.js"
 import User from "./Models/userModel.js"
 import Chat from "./Models/chatModel.js"
-import path from "path"
+
 dotenv.config()
 
 connectDB()
@@ -24,9 +24,9 @@ app.use(cors({
 
 app.use(express.json())
 
-app.use("/api/user", userRouter)
-app.use("/api/chat", chatRouter)
-app.use("/api/message", messageRouter)
+app.use("/user", userRouter)
+app.use("/chat", chatRouter)
+app.use("/message", messageRouter)
 app.use(express.static("public"))
 
 // =======================================deployment===================================
