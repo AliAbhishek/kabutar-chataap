@@ -16,13 +16,12 @@ dotenv.config()
 connectDB()
 
 const app = express()
-app.use(cors(
-    {
-        origin: ["https://kabutar-chataap.vercel.app"],
-        methods: ["POST", "GET"],
-        credentials: true
-    }
-));
+app.use(cors({
+    origin: ["https://kabutar-chataap.vercel.app", "http://localhost:5173"], // Allow both production and local development
+    methods: ["POST", "GET"],
+    credentials: true
+}));
+
 app.use(express.json())
 
 app.use("/api/user", userRouter)
@@ -36,16 +35,16 @@ const __dirname1 = path.resolve();
 
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname1, "/frontend/dist")));
-  
+
     app.get("*", (req, res) =>
-      res.sendFile(path.resolve(__dirname1, "frontend", "dist", "index.html"))
+        res.sendFile(path.resolve(__dirname1, "frontend", "dist", "index.html"))
     );
-    
-  } else {
+
+} else {
     app.get("/", (req, res) => {
-      res.send("API is running..");
+        res.send("API is running..");
     });
-  }
+}
 
 
 // ==================================================================================
@@ -67,9 +66,10 @@ const server = app.listen(port, () => {
 )
 const io = new Server(server, {
     cors: {
-        origin: "https://kabutar-chataap.vercel.app" || "http://localhost:5173", // Allow requests from this origin
-        methods: ["GET", "POST"],  // Allowed methods
-        credentials: true          // Allow credentials (cookies, authorization headers, etc.)
+        origin: ["https://kabutar-chataap.vercel.app", "http://localhost:5173"], // Allow both production and local development
+        methods: ["POST", "GET"],
+        credentials: true
+        // Allow credentials (cookies, authorization headers, etc.)
     }
 });
 
@@ -98,14 +98,14 @@ io.on("connection", (socket) => {
         socket.to(room).emit("receive-message", message)
 
         let chatData = await Chat.findById(room)
-        console.log(chatData,"chatData")
+        console.log(chatData, "chatData")
 
 
 
         if (socket.request.user) {
             // const user = await User.findById(socket.request?.user?.userId);
             // const user = await User.findById(socket.request?.user?.userId);
-            
+
 
             if (chatData?.isGroupChat === false) {
                 const otherUser = chatData?.users.find(
@@ -126,7 +126,7 @@ io.on("connection", (socket) => {
                 const usersToNotify = chatData?.users.filter(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
-            
+
                 for (const userId of usersToNotify) {
                     const userData = await User.findById(userId);
                     if (userData) {
@@ -134,7 +134,7 @@ io.on("connection", (socket) => {
                         console.log(`Notification sent to ${userData.name}`);
                     }
                 }
-                
+
             }
 
         } else {
