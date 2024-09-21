@@ -5,8 +5,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install && npm install --force  && npm --prefix frontend install --force && npm --prefix frontend run build"
+    "test": "echo \"Error: no test specified\" && exit 1"
 
   },
   "author": "Abhishek Ali",
