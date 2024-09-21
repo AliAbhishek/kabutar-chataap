@@ -1,21 +1,26 @@
 {
     "version": 2,
     "builds": [
-      { "src": "*.js", "use": "@vercel/node" }
+      { "src": "index.js", "use": "@vercel/node" }
     ],
     "routes": [
       {
-        "src": "/(.*)",
-        "dest": "/user/$1"
+        "src": "/user(.*)",
+        "dest": "/index.js"
+      },
+      {
+        "src": "/chat(.*)",
+        "dest": "/index.js"
+      },
+      {
+        "src": "/message(.*)",
+        "dest": "/index.js"
       },
       {
         "src": "/(.*)",
-        "dest": "/chat/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/message/$1"
+        "dest": "/index.js"
       }
     ]
   }
+  
   
