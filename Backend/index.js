@@ -57,6 +57,13 @@ let port = process.env.PORT
 app.get("/", (req, res) => {
     res.send("hiiiiiiiii")
 })
+app.get("/user", (req, res) => {
+    res.send("user")
+})
+app.post("/user/login", (req, res) => {
+    res.send("login")
+})
+
 
 const server = app.listen(port, () => {
     console.log(`Express connected on ${port}`)
