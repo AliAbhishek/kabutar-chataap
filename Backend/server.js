@@ -16,7 +16,13 @@ dotenv.config()
 connectDB()
 
 const app = express()
-app.use(cors())
+app.use(cors(
+    {
+        origin: ["https://kabutar-chataap.vercel.app"],
+        methods: ["POST", "GET"],
+        credentials: true
+    }
+));
 app.use(express.json())
 
 app.use("/api/user", userRouter)
@@ -61,7 +67,7 @@ const server = app.listen(port, () => {
 )
 const io = new Server(server, {
     cors: {
-        origin: process.env.REACT_APP_SOCKET_ENDPOINT || "http://localhost:5173", // Allow requests from this origin
+        origin: "https://kabutar-chataap.vercel.app/" || "http://localhost:5173", // Allow requests from this origin
         methods: ["GET", "POST"],  // Allowed methods
         credentials: true          // Allow credentials (cookies, authorization headers, etc.)
     }
