@@ -48,38 +48,39 @@ export const userServices = {
     },
 
     login: async (req, res) => {
-        const { email, password,deviceToken } = req.body
-
-        let userExist = await User.findOne({ email })
-        console.log(userExist, "user")
-
+        const { email, password, deviceToken } = req.body;
+    
+        console.time("MongoDB Query - Find User");
+        let userExist = await User.findOne({ email });
+        console.timeEnd("MongoDB Query - Find User");
+    
+        console.log(userExist, "user");
+    
         if (!userExist) {
-            return errorRes(res, 400, "User does not exist")
-
+            return errorRes(res, 400, "User does not exist");
         } else {
-
-            let checkPassword = await bcrypt.compare(password, userExist?.password)
+            console.time("Password Comparison");
+            let checkPassword = await bcrypt.compare(password, userExist?.password);
+            console.timeEnd("Password Comparison");
+    
             if (checkPassword) {
-                let token = await generateToken(userExist?._id)
+                let token = await generateToken(userExist?._id);
                 let result = {
                     user: userExist,
                     token
-                }
+                };
+    
                 if (deviceToken) {
                     await User.findByIdAndUpdate(userExist?._id, { deviceToken });
                 }
-        
-                return successRes(res, 201, "User successfully login", result)
-
+    
+                return successRes(res, 201, "User successfully login", result);
             } else {
-                return errorRes(res, 400, "Invalid credentials")
+                return errorRes(res, 400, "Invalid credentials");
             }
         }
-
-
-
-
     },
+    
 
     search: async (req, res) => {
         const { search } = req.query
