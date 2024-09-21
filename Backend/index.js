@@ -16,9 +16,14 @@ dotenv.config()
 connectDB()
 
 const app = express()
+app.options("", cors({
+    origin: "*", // Allow both production and local development
+    methods: ["POST", "GET", "PUT", "DELETE"],
+    credentials: true
+}))
 app.use(cors({
-    origin: ["https://kabutar-chataap.vercel.app", "http://localhost:5173"], // Allow both production and local development
-    methods: ["POST", "GET"],
+    origin: "*", // Allow both production and local development
+    methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true
 }));
 
@@ -65,7 +70,7 @@ app.post("/user/login", (req, res) => {
 })
 
 
-const server = app.listen(port, async() => {
+const server = app.listen(port, async () => {
     console.log(`Express connected on ${port}`)
     await connectWithRetry()
 }
@@ -74,8 +79,8 @@ const server = app.listen(port, async() => {
 )
 const io = new Server(server, {
     cors: {
-        origin: ["https://kabutar-chataap.vercel.app", "http://localhost:5173"], // Allow both production and local development
-        methods: ["POST", "GET"],
+        origin: "*", // Allow both production and local development
+        methods: ["POST", "GET", "PUT", "DELETE"],
         credentials: true
         // Allow credentials (cookies, authorization headers, etc.)
     }
