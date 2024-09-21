@@ -67,7 +67,7 @@ const server = app.listen(port, () => {
 )
 const io = new Server(server, {
     cors: {
-        origin: "https://kabutar-chataap.vercel.app/" || "http://localhost:5173", // Allow requests from this origin
+        origin: "https://kabutar-chataap.vercel.app" || "http://localhost:5173", // Allow requests from this origin
         methods: ["GET", "POST"],  // Allowed methods
         credentials: true          // Allow credentials (cookies, authorization headers, etc.)
     }
