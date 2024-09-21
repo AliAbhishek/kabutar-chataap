@@ -1,7 +1,7 @@
 import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
-import connectDB from "./DBConnection/DBconnection.js"
+import connectDB, { connectWithRetry } from "./DBConnection/DBconnection.js"
 import userRouter from "./Routes/userRoutes.js"
 import chatRouter from "./Routes/chatRoutes.js"
 import messageRouter from "./Routes/messageRouter.js"
@@ -65,8 +65,9 @@ app.post("/user/login", (req, res) => {
 })
 
 
-const server = app.listen(port, () => {
+const server = app.listen(port, async() => {
     console.log(`Express connected on ${port}`)
+    await connectWithRetry()
 }
 
 
