@@ -10,6 +10,7 @@ import { notificationService } from "./Services/notificationService.js"
 import { authenticateSocket } from "./middlewares/UserAuthenticate.js"
 import User from "./Models/userModel.js"
 import Chat from "./Models/chatModel.js"
+import path from "path"
 dotenv.config()
 
 connectDB()
@@ -22,6 +23,23 @@ app.use("/api/user", userRouter)
 app.use("/api/chat", chatRouter)
 app.use("/api/message", messageRouter)
 app.use(express.static("public"))
+
+// =======================================deployment===================================
+
+const __dirname1 = path.resolve();
+
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname1, "/frontend/dist")));
+  
+    app.get("*", (req, res) =>
+      res.sendFile(path.resolve(__dirname1, "frontend", "dist", "index.html"))
+    );
+    
+  } else {
+    app.get("/", (req, res) => {
+      res.send("API is running..");
+    });
+  }
 
 
 // ==================================================================================
