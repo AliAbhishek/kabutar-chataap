@@ -20,13 +20,12 @@ const uri = "mongodb+srv://mosimkhan15102001:gXbxNu8lIpr6czQQ@kabutar-cluster.ut
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    
     serverApi: {
-      version: ServerApiVersion.v1,
-      strict: false,  // Set strict to false
-      deprecationErrors: true,
-    },
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true, // Keep deprecation warnings for future updates
+      },
     tlsAllowInvalidCertificates: true,  // This disables SSL validation
   });
   
