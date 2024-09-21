@@ -1,0 +1,109 @@
+@keyframes flapWings {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes pigeonColor {
+    0% {
+      color: #a9a9a9; /* DarkGray */
+    }
+    50% {
+      color: #778899; /* LightSlateGray */
+    }
+    100% {
+      color: #4682b4; /* SteelBlue */
+    }
+  }
+  
+  @keyframes subtleRotation {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-3deg);
+    }
+  }
+  
+  .animated-logo {
+    animation: flapWings 2s infinite ease-in-out, pigeonColor 5s infinite, subtleRotation 6s infinite;
+    font-size: 3rem;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: bold;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    
+  }
+
+  ::-webkit-scrollbar {
+  width: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.281);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* funkyStyles.css */
+@keyframes colorChange {
+  0% { color: #ff0055; }
+  25% { color: #ffcc00; }
+  50% { color: #00ff99; }
+  75% { color: #00aaff; }
+  100% { color: #ff0055; }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-30px); }
+  60% { transform: translateY(-15px); }
+}
+
+@keyframes shake {
+  0% { transform: rotate(-2deg); }
+  25% { transform: rotate(2deg); }
+  50% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.funky-text {
+  font-size: 2rem; /* Adjusted for better visibility */
+  font-family: 'Work Sans', sans-serif;
+  display: inline-block;
+  animation: colorChange 5s linear infinite, bounce 1.5s ease infinite, shake 1s ease-in-out infinite;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+  transform: perspective(500px) rotateX(10deg);
+  font-weight: bold;
+}
+
+.css-j6mns {
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding: var(--chakra-space-3);
+  background: #F8F8F8;
+  width: 100%;
+  /* height: 100%; */
+  border-radius: var(--chakra-radii-lg);
+  /* overflow-y: auto; */
+  /* scrollbar-width: none */
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+
+  
