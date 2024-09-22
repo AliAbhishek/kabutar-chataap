@@ -16,7 +16,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FaEllipsisV } from "react-icons/fa";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   deleteMessage,
   editMessage,
@@ -78,6 +78,7 @@ const ScrollableChat = ({
   fetchAgain,
   setFetchAgain,
   setMessageId,
+  handleReplyto,
 }) => {
   const chatdata = useSelector((state) => state.userData.chatData);
   const dispatch = useDispatch();
@@ -86,48 +87,81 @@ const ScrollableChat = ({
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentMessageId, setCurrentMessageId] = useState(null);
+  const [highlightedMessage, setHighlightedMessage] = useState(null);
+
+  const messageRefs = useRef([]);
+
+  const scrollToMessage = (id) => {
+    const messageIndex = messages.findIndex((msg) => msg._id === id);
+    if (messageIndex >= 0 && messageRefs.current[messageIndex]) {
+      messageRefs.current[messageIndex].scrollIntoView({ behavior: "smooth" });
+      setHighlightedMessage(id);
+    }
+  };
 
   return (
-    <ScrollableFeed>
+    <ScrollableFeed className="custom-scroll">
       {messages &&
         messages.map((m, i) => (
           <Flex
             key={m._id}
             align="center"
             marginY={2}
-            direction={m.sender._id === user._id ? "row-reverse" : "row"}
+            direction={m?.sender?._id === user?._id ? "row-reverse" : "row"}
+            ref={(el) => (messageRefs.current[i] = el)}
           >
             {(isSameSender(messages, m, i, user._id) ||
               isLastMessage(messages, i, user._id)) && (
-              <Tooltip label={m.sender.name} placement="bottom-start" hasArrow>
+              <Tooltip
+                label={m?.sender?.name}
+                placement="bottom-start"
+                hasArrow
+              >
                 <Avatar
                   mt="7px"
                   mr={1}
                   size="sm"
                   cursor="pointer"
-                  name={m.sender.name}
-                  src={m.sender.pic}
+                  name={m?.sender?.name}
+                  src={m?.sender?.pic}
                 />
               </Tooltip>
             )}
             <Flex
               style={{
-                backgroundColor: m.isDeleted
-                  ? "#f8d7da" // Background for deleted
-                  : m.sender?._id === user._id
-                  ? "#BEE3F8"
-                  : "#B9F5D0", // Background for non-deleted,
+                backgroundColor:
+                  highlightedMessage === m._id
+                    ? "#38B2AC" // Highlight color
+                    : m?.isDeleted
+                    ? "#f8d7da" // Background for deleted
+                    : m?.sender?._id === user?._id
+                    ? "#BEE3F8"
+                    : "#B9F5D0", // Background for non-deleted
                 marginLeft: isSameSenderMargin(messages, m, i, user?._id),
                 marginTop: isSameUser(messages, m, i, user?._id) ? 3 : 10,
                 borderRadius: "20px",
                 padding: "5px 15px",
-                // maxWidth: "75%",
+                transition: "background-color 0.5s ease, color 0.5s ease", // Add both transitions
+                // color: highlightedMessage === m._id ? "#38B2AC" : "initial", // Set color or fallback
               }}
               direction="column"
-              align={m.sender._id === user._id ? "flex-end" : "flex-start"}
-              // maxWidth="75%"
+              align={m.sender?._id === user?._id ? "flex-end" : "flex-start"}
               position="relative" // Ensure this container is positioned relative
             >
+              {m?.replyto && (
+                <Box
+                  bg="gray.100"
+                  p={2}
+                  borderRadius="md"
+                  borderLeft="4px solid teal"
+                  mb={2}
+                  maxWidth="100%"
+                  onClick={() => scrollToMessage(m?.replyto?._id)} // Scroll to original message on click
+                  cursor="pointer"
+                >
+                  <Text>Replying to: {m?.replyto?.content || m?.replyto?.file && <img style={{height:"200px",width:"200px",objectFit:"cover"}} src={m?.replyto?.file}/> }</Text>
+                </Box>
+              )}
               <Box
                 // bg={m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0"}
                 borderRadius="20px"
@@ -141,27 +175,27 @@ const ScrollableChat = ({
                     year: "numeric",
                     month: "long",
                     day: "numeric",
-                  }).format(new Date(m.createdAt))}
+                  }).format(new Date(m?.createdAt))}
                   placement="bottom-start"
                   hasArrow
                 >
-                  <Text>{m.content}</Text>
+                  <Text>{m?.content || m?.file && <img style={{height:"200px",width:"200px",objectFit:"cover"}} src={m?.file}/>}</Text>
                 </Tooltip>
 
                 <Text
                   fontSize="10px"
                   color="gray.500"
-                  textAlign={m.sender._id === user._id ? "right" : "left"}
+                  textAlign={m?.sender?._id === user?._id ? "right" : "left"}
                 >
-                  {new Date(m.createdAt).toLocaleTimeString([], {
+                  {new Date(m?.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
                   {m?.isEdited && " (Edited)"}
                 </Text>
-                {!m?.isDeleted && m.sender._id === user._id && (
+                {!m?.isDeleted && (
                   <Menu
-                    isOpen={currentMessageId === m._id && isOpen}
+                    isOpen={currentMessageId === m?._id && isOpen}
                     onClose={onClose}
                     placement="auto-end"
                   >
@@ -172,7 +206,7 @@ const ScrollableChat = ({
                       size="sm"
                       variant="unstyled"
                       onClick={() => {
-                        setCurrentMessageId(m._id);
+                        setCurrentMessageId(m?._id);
                         onOpen();
                       }}
                       position="absolute"
@@ -181,25 +215,35 @@ const ScrollableChat = ({
                       zIndex="tooltip" // Ensure it is above other elements
                     />
                     <MenuList>
-                      <MenuItem
-                        onClick={() => {
-                          setNewMessage(m?.content);
-                          setMessageId(currentMessageId);
-                        }}
-                        // onKeyDown={sendMessage(true,currentMessageId)}
-                      >
-                        Edit
+                      <MenuItem onClick={() => handleReplyto(m)}>
+                        Reply
                       </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          dispatch(
-                            deleteMessage({ messageId: currentMessageId })
-                          );
-                          setFetchAgain(!fetchAgain);
-                        }}
-                      >
-                        Delete
-                      </MenuItem>
+                      {m?.sender?._id === user?._id && (
+                        <>
+                        {
+                          !m?.file && <MenuItem
+                          onClick={() => {
+                            setNewMessage(m?.content);
+                            setMessageId(currentMessageId);
+                          }}
+                          // onKeyDown={sendMessage(true,currentMessageId)}
+                        >
+                          Edit
+                        </MenuItem>
+                        }
+                          
+                          <MenuItem
+                            onClick={() => {
+                              dispatch(
+                                deleteMessage({ messageId: currentMessageId })
+                              );
+                              setFetchAgain(!fetchAgain);
+                            }}
+                          >
+                            Delete
+                          </MenuItem>
+                        </>
+                      )}
                     </MenuList>
                   </Menu>
                 )}

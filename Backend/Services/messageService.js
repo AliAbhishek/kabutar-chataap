@@ -1,4 +1,5 @@
 
+import uploadOnCloudinary from "../helpers/cloudinary.js"
 import { errorRes, successRes } from "../helpers/response.js"
 import Chat from "../Models/chatModel.js"
 import Message from "../Models/messagesModel.js"
@@ -8,15 +9,26 @@ import User from "../Models/userModel.js"
 export const messageService = {
     sendMessage: async (req, res) => {
 
-        const { content, chat } = req.body
-        if (!content || !chat) {
-            return errorRes(res, 400, "Please enter correct ddetails")
+        const { content, chat, replyto } = req.body
+        // console.log(content,"content")
+        // console.log(chat,"chat")
+        // // const {file} = req.files
+        // console.log(req.files,"file")
+        // console.log(replyto, "rreeeppplllyyy")
+        // if (!content || !file) {
+        //     return errorRes(res, 400, "Please enter correct details")
+        // }
+
+        let cloudinaryImage
+        if (req?.files?.file) {
+            let image = req.files.file[0].path
+             cloudinaryImage = await uploadOnCloudinary(image)
         }
 
         const data = {
             sender: req.user.userId,
             chat,
-            content
+            content, replyto ,file:cloudinaryImage?.url
         }
 
         let message = await Message.create(data)
@@ -40,7 +52,7 @@ export const messageService = {
         // Find the messages and populate them before sending the response
         const data = await Message.find({ chat: chatId })
             .populate({ path: "sender", select: "-password" })
-            .populate("chat");
+            .populate("chat").populate("replyto");
 
         if (!data) {
             return errorRes(res, 404, "No messages found for this chat");
@@ -70,7 +82,7 @@ export const messageService = {
         const userId = req.user?.userId
         const user = await User.findById(userId)
 
-        let updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content: `Message deleted by ${user?.name} `,isDeleted:true } }, { new: true })
+        let updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content: `Message deleted by ${user?.name} `, isDeleted: true } }, { new: true })
         return successRes(res, 200, "message deleted successfully", updatedMessage)
 
     }

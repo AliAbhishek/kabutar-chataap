@@ -84,7 +84,7 @@ const io = new Server(server, {
         origin: "*", // Allow both production and local development
         methods: ["POST", "GET", "PUT", "DELETE"],
         credentials: true
-        // Allow credentials (cookies, authorization headers, etc.)
+        
     }
 });
 
@@ -126,6 +126,7 @@ io.on("connection", (socket) => {
                 const otherUser = chatData?.users.find(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
+                console.log(otherUser,"other")
 
                 if (otherUser) {
                     // Fetch the user data from the User model
@@ -133,7 +134,7 @@ io.on("connection", (socket) => {
                     console.log('Found other user:', otherUserData);
                     // You can now use `otherUserData` for further operations
 
-                    await notificationService.sendNotification(`New Message from ${otherUserData?.name}`, message, otherUser);
+                    await notificationService.sendNotification(`New Message from ${socket.request?.user?.name}`, message, otherUser);
                 } else {
                     console.log('No other user found');
                 }

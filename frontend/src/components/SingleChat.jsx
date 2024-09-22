@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   FormControl,
   IconButton,
   Input,
@@ -23,11 +24,15 @@ import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
 import typingAnimation from "../Animation/typing.json";
 import { chatNameStuff, chatWithUser } from "../redux/Slice/userSlice";
+import { FaPaperclip, FaPaperPlane, FaSmile, FaTimes } from "react-icons/fa";
+import EmojiPicker from "emoji-picker-react";
 
 let socket;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  // const Endpoint = "http://192.168.56.1:8000/";
+
   // const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
 
@@ -44,6 +49,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messageId, setMessageId] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
   const [notification, setNotification] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replymessageContent, setReplyMessageContent] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [file, setFile] = useState(null);
 
   const defaultOptions = {
     loop: true,
@@ -97,14 +106,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   console.log(socketConnected, "socket");
 
   useEffect(() => {
-    
     const fetchMessages = async () => {
       if (!chatWithUserData) return;
 
       // setLoading(true);
       try {
         const data = await dispatch(getMessages(chatdata?._id));
-        console.log(data?.payload?.data,"deleted")
+        // console.log(data?.payload?.data, "deleted");
         setMessages(data?.payload?.data);
       } catch (error) {
         console.error("Failed to Load the Messages", error);
@@ -147,20 +155,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   console.log(notification, "notification");
 
   const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) {
+    if (file || event.key === "Enter" && newMessage) {
       socket.emit("stop typing", chatdata._id);
+      const formaData = new FormData();
+      newMessage && formaData.append("content", newMessage);
+      chatdata && formaData.append("chat", chatdata?._id);
+      replymessageContent &&
+        formaData.append("replyto", replymessageContent?._id);
+        file && formaData.append("file", file);
+
       try {
         const data = messageId
           ? await dispatch(
               editMessage({ messageId: messageId, content: newMessage })
             )
-          : await dispatch(
-              sendMessages({ content: newMessage, chat: chatdata?._id })
-            );
+          : await dispatch(sendMessages(formaData));
 
         if (data?.payload?.success) {
           setNewMessage("");
+          setMessageId("");
+          setReplyingTo(null);
+          setReplyMessageContent(null)
+          setShowEmojiPicker(false);
           setFlag((prevFlag) => !prevFlag);
+          // setMessages([...messages,newMessage])
 
           socket.emit("send-message", {
             message: newMessage,
@@ -172,6 +190,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }
   };
+
+
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
@@ -195,6 +215,32 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   console.log(istyping, "istyping");
+
+  const handleReplyto = (message) => {
+    setReplyMessageContent(message);
+    setReplyingTo(true);
+  };
+
+  const addEmoji = (e) => {
+    console.log(e, "emoji");
+    let emoji = e.emoji;
+
+    setNewMessage(newMessage + emoji); // Add emoji to the input field
+  };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]); // Set the file when user selects one
+  };
+
+  console.log(file,"file")
+
+  useEffect(()=>{
+    
+    if(file){
+      sendMessage()
+    }
+
+  },[file])
 
   return (
     <>
@@ -265,7 +311,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   setMessageId={setMessageId}
                   // setFlag={setFlag}
                   // flag={flag}
-                  fetchAgain={fetchAgain} setFetchAgain={setFetchAgain}
+                  fetchAgain={fetchAgain}
+                  setFetchAgain={setFetchAgain}
+                  handleReplyto={handleReplyto}
                 />
                 {/* Messages content will go here */}
               </div>
@@ -293,13 +341,74 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-              <Input
-                variant="filled"
-                bg="#E0E0E0"
-                placeholder="Enter a message.."
-                value={newMessage}
-                onChange={typingHandler}
-              />
+
+              {replyingTo && (
+                <Box
+                  bg="gray.100"
+                  p={3}
+                  borderRadius="md"
+                  mb={2}
+                  position="relative"
+                >
+                  <Text fontSize="sm" color="gray.600">
+                    Replying to: {replymessageContent?.content ||replymessageContent?.file  }
+                  </Text>
+                  <IconButton
+                    aria-label="Cancel reply"
+                    icon={<FaTimes />}
+                    size="sm"
+                    position="absolute"
+                    top="2"
+                    right="2"
+                    onClick={() => setReplyingTo(null)} // Clear reply when canceling
+                  />
+                </Box>
+              )}
+              <Flex alignItems="center">
+                <IconButton
+                  aria-label="emoji-picker"
+                  icon={<FaSmile />}
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  variant="ghost"
+                  size="lg"
+                />
+
+                <IconButton
+                  aria-label="file-upload"
+                  icon={<FaPaperclip />}
+                  variant="ghost"
+                  size="lg"
+                  as="label" // This turns the button into a file input label
+                  htmlFor="file-upload" // Associates the button with the hidden file input
+                  cursor="pointer"
+                />
+                <Input
+                  type="file"
+                  id="file-upload"
+                  display="none" // Hide the file input
+                  onChange={handleFileChange}
+                />
+                <Input
+                  variant="filled"
+                  bg="#E0E0E0"
+                  placeholder="Enter a message.."
+                  value={newMessage}
+                  onChange={typingHandler}
+                />
+                {/* <IconButton
+                  aria-label="send-message"
+                  icon={<FaPaperPlane />}
+                  onClick={sendMessage}
+                  variant="solid"
+                  colorScheme="blue"
+                /> */}
+              </Flex>
+
+              {showEmojiPicker && (
+                <Box position="absolute" bottom="50px" zIndex="1000">
+                  <EmojiPicker onEmojiClick={addEmoji} />
+                </Box>
+              )}
             </FormControl>
           </Box>
         </>

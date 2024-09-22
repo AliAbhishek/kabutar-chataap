@@ -105,5 +105,16 @@
   scrollbar-width: none;
 }
 
+.custom-scroll {
+  overflow-y: auto;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+.custom-scroll::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+
 
   

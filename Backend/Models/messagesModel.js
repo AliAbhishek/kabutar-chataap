@@ -6,8 +6,11 @@ const messageSchema = mongoose.Schema(
     content: { type: String, trim: true },
     chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    isEdited:{type:Boolean, default:false},
-    isDeleted:{type:Boolean, default:false},
+    isEdited: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
+    replyto: { type: mongoose.Schema.Types.ObjectId, ref: "Message", default: null },
+    file: { type: String, default: null }
+
   },
   { timestamps: true }
 );
