@@ -30,38 +30,38 @@ const client = new MongoClient(uri, {
     serverSelectionTimeoutMS: 10000  // This disables SSL validation
   });
 
-  async function connectWithRetry() {
-    const maxRetries = 3; // Maximum number of retry attempts
-    let retries = 0; // Start retry count
+//   async function connectWithRetry() {
+//     const maxRetries = 3; // Maximum number of retry attempts
+//     let retries = 0; // Start retry count
   
-    while (retries < maxRetries) {
-      try {
-        // Connect to MongoDB
-        await client.connect();
-        console.log("Successfully connected to MongoDB");
+//     while (retries < maxRetries) {
+//       try {
+//         // Connect to MongoDB
+//         await client.connect();
+//         console.log("Successfully connected to MongoDB");
   
-        // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+//         // Send a ping to confirm a successful connection
+//         await client.db("admin").command({ ping: 1 });
+//         console.log("Pinged your deployment. You successfully connected to MongoDB!");
         
-        break; // If connected, break out of the loop
-      } catch (error) {
-        retries += 1;
-        console.log(`Retrying... (${retries}/${maxRetries})`);
-        console.error(`Error connecting to MongoDB: ${error.message}`);
+//         break; // If connected, break out of the loop
+//       } catch (error) {
+//         retries += 1;
+//         console.log(`Retrying... (${retries}/${maxRetries})`);
+//         console.error(`Error connecting to MongoDB: ${error.message}`);
   
-        // Wait 3 seconds before retrying
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
-    }
+//         // Wait 3 seconds before retrying
+//         await new Promise(resolve => setTimeout(resolve, 3000));
+//       }
+//     }
   
-    if (retries === maxRetries) {
-      console.error("Failed to connect to MongoDB after multiple attempts.");
-      process.exit(1); // Exit the process after failing multiple times
-    }
-  }
+//     if (retries === maxRetries) {
+//       console.error("Failed to connect to MongoDB after multiple attempts.");
+//       process.exit(1); // Exit the process after failing multiple times
+//     }
+//   }
   
-  export  {connectWithRetry};
+//   export  {connectWithRetry};
   
 
 async function connectDB() {
