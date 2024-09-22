@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
         deprecationErrors: true, // Keep deprecation warnings for future updates
       },
     tlsAllowInvalidCertificates: true,
-    serverSelectionTimeoutMS: 10000  // This disables SSL validation
+    serverSelectionTimeoutMS: 30000  // This disables SSL validation
   });
 
 //   async function connectWithRetry() {
