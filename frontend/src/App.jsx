@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import HomePage from "./Pages/HomePage";
 import ChatPage from "./Pages/ChatPage";
 import "./App.css";
-import "./assets/style.css";
+import "../assets/style.css"
 import ParticlesEffect from "./components/ParticleEffect";
 import { onMessageListener, requestForToken } from "./Firebase/FirebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
