@@ -27,7 +27,7 @@ import { chatNameStuff, chatWithUser } from "../redux/Slice/userSlice";
 let socket;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const Endpoint = "http://192.168.56.1:8000/";
+  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
   // const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
 
