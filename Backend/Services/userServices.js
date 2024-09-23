@@ -5,6 +5,7 @@ import generateToken from "../helpers/generateToken.js"
 import bcrypt from "bcrypt"
 import uploadOnCloudinary from "../helpers/cloudinary.js"
 import User from "../Models/userModel.js"
+import Chat from "../Models/chatModel.js"
 
 
 export const userServices = {
@@ -92,6 +93,12 @@ export const userServices = {
                 {name:{$regex:search,$options:"i"}},
                 {email:{$regex:search,$options:"i"}}
             ] }).find({_id:{$ne:userId?.userId}})
+
+            // let chats = await Chat.find({
+            //     chatName: { $regex: search, $options: "i" },
+            //   })
+            //   console.log(chats,"chatsss")
+              
             return successRes(res,200,"User found successfully",data)
         }
         

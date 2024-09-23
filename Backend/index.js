@@ -130,11 +130,12 @@ io.on("connection", (socket) => {
 
                 if (otherUser) {
                     // Fetch the user data from the User model
-                    const otherUserData = await User.findById(otherUser);
-                    console.log('Found other user:', otherUserData);
+                    const otherUserData = await User.findById(socket.request?.user?.userId);
+                    // console.log('Found other user:', otherUserData);
+                    console.log(otherUserData?.name,"otherUserData?.name")
                     // You can now use `otherUserData` for further operations
 
-                    await notificationService.sendNotification(`New Message from ${socket.request?.user?.name}`, message, otherUser);
+                    await notificationService.sendNotification(`New Message from ${otherUserData?.name}`, message, otherUser);
                 } else {
                     console.log('No other user found');
                 }
