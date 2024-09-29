@@ -33,6 +33,15 @@ const userController = {
             errorRes(res, 500, error.message)
 
         }
+    },
+    editProfile: async(req,res)=>{
+        try {
+            const data = await userServices.editProfile(req, res)
+
+        } catch (error) {
+            errorRes(res, 500, error.message)
+
+        }
     }
 }
 

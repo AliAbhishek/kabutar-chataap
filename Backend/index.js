@@ -108,7 +108,7 @@ io.on("connection", (socket) => {
 
     socket.on("send-message", async ({ message, room }) => {
 
-
+    console.log(room,"room")
 
         socket.to(room).emit("receive-message", message)
 
@@ -122,7 +122,7 @@ io.on("connection", (socket) => {
             // const user = await User.findById(socket.request?.user?.userId);
 
 
-            if (chatData?.isGroupChat === false) {
+            if (chatData?.isGroupChat == false) {
                 const otherUser = chatData?.users.find(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
@@ -143,6 +143,8 @@ io.on("connection", (socket) => {
                 const usersToNotify = chatData?.users.filter(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
+
+
 
                 for (const userId of usersToNotify) {
                     const userData = await User.findById(userId);

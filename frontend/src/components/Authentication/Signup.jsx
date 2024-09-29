@@ -1,14 +1,14 @@
 import { Button } from "@chakra-ui/button";
 import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
-import { VStack } from "@chakra-ui/layout";
+import { VStack, Text } from "@chakra-ui/layout";
 import { useToast } from "@chakra-ui/toast";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registration } from "../../redux/actions/userActions";
+import { editProfile, registration } from "../../redux/actions/userActions";
 import { useNavigate } from "react-router-dom";
 
-const Signup = () => {
+const Signup = ({ purpose }) => {
   const dispatch = useDispatch();
   const fcm = useSelector((state) => state.userData.fcmToken);
   const [show, setShow] = useState(false);
@@ -24,51 +24,56 @@ const Signup = () => {
 
   const submitHandler = async () => {
     setPicLoading(true);
-    if (!name || !email || !password || !confirmpassword) {
-      toast({
-        title: "Please Fill all the Fields",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
-      setPicLoading(false);
-      return;
-    }
 
-    const emailPattern = /^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailPattern.test(email)) {
-      toast({
-        title: "Please enter a valid email",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
-      setPicLoading(false);
-      return;
-    }
+    if (!purpose) {
+      if (!name || !email || !password || !confirmpassword) {
+        toast({
+          title: "Please Fill all the Fields",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setPicLoading(false);
+        return;
+      }
 
-    if (password !== confirmpassword) {
-      toast({
-        title: "Passwords Do Not Match",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
-      setPicLoading(false);
-      return;
+      const emailPattern = /^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(email)) {
+        toast({
+          title: "Please enter a valid email",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setPicLoading(false);
+        return;
+      }
+
+      if (password !== confirmpassword) {
+        toast({
+          title: "Passwords Do Not Match",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setPicLoading(false);
+        return;
+      }
     }
 
     let formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("deviceToken", fcm);
-    formData.append("pic", pic);
+   name && formData.append("name", name);
+   email && formData.append("email", email);
+   password && formData.append("password", password);
+   fcm && formData.append("deviceToken", fcm);
+   pic &&  formData.append("pic", pic);
 
-    let data = await dispatch(registration(formData));
+    
+
+    let data = purpose ? await dispatch(editProfile(formData)) : await dispatch(registration(formData));
 
     if (data?.payload?.success) {
       setPicLoading(false);
@@ -79,9 +84,9 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
-      sessionStorage.setItem("token", data?.payload?.data?.token);
+     !purpose && sessionStorage.setItem("token", data?.payload?.data?.token);
       // window.location.href = "/chats";
-      navigate("/chats")
+      navigate("/chats");
     } else {
       toast({
         title: data?.payload?.message,
@@ -96,6 +101,11 @@ const Signup = () => {
 
   return (
     <VStack spacing="5px">
+      {/* {!purpose && ( */}
+      <Text fontSize="2xl" color="white" fontWeight="bold" textAlign="center">
+        Edit Profile
+      </Text>
+      {/* )} */}
       <FormControl id="first-name" isRequired>
         <FormLabel color="white">Name</FormLabel>
         <Input
@@ -115,40 +125,46 @@ const Signup = () => {
           _placeholder={{ color: "gray.400" }}
         />
       </FormControl>
-      <FormControl id="password" isRequired>
-        <FormLabel color="white">Password</FormLabel>
-        <InputGroup size="md">
-          <Input
-            type={show ? "text" : "password"}
-            placeholder="Enter Password"
-            onChange={(e) => setPassword(e.target.value)}
-            color="white"
-            _placeholder={{ color: "gray.400" }}
-          />
-          <InputRightElement width="4.5rem">
-            <Button h="1.75rem" size="sm" onClick={handleClick}>
-              {show ? "Hide" : "Show"}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-      </FormControl>
-      <FormControl id="confirmpassword" isRequired>
-        <FormLabel color="white">Confirm Password</FormLabel>
-        <InputGroup size="md">
-          <Input
-            type={show ? "text" : "password"}
-            placeholder="Confirm Password"
-            onChange={(e) => setConfirmpassword(e.target.value)}
-            color="white"
-            _placeholder={{ color: "gray.400" }}
-          />
-          <InputRightElement width="4.5rem">
-            <Button h="1.75rem" size="sm" onClick={handleClick}>
-              {show ? "Hide" : "Show"}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-      </FormControl>
+      {!purpose && (
+        <>
+          {" "}
+          <FormControl id="password" isRequired>
+            <FormLabel color="white">Password</FormLabel>
+            <InputGroup size="md">
+              <Input
+                type={show ? "text" : "password"}
+                placeholder="Enter Password"
+                onChange={(e) => setPassword(e.target.value)}
+                color="white"
+                _placeholder={{ color: "gray.400" }}
+              />
+              <InputRightElement width="4.5rem">
+                <Button h="1.75rem" size="sm" onClick={handleClick}>
+                  {show ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+          </FormControl>
+          <FormControl id="confirmpassword" isRequired>
+            <FormLabel color="white">Confirm Password</FormLabel>
+            <InputGroup size="md">
+              <Input
+                type={show ? "text" : "password"}
+                placeholder="Confirm Password"
+                onChange={(e) => setConfirmpassword(e.target.value)}
+                color="white"
+                _placeholder={{ color: "gray.400" }}
+              />
+              <InputRightElement width="4.5rem">
+                <Button h="1.75rem" size="sm" onClick={handleClick}>
+                  {show ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+          </FormControl>
+        </>
+      )}
+
       <FormControl id="pic">
         <FormLabel color="white">Upload your Picture</FormLabel>
         <Input
@@ -166,7 +182,7 @@ const Signup = () => {
         onClick={submitHandler}
         isLoading={picLoading}
       >
-        Sign Up
+        {purpose ? "Edit Profile" : "Sign Up"}
       </Button>
     </VStack>
   );

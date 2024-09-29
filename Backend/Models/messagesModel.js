@@ -9,7 +9,8 @@ const messageSchema = mongoose.Schema(
     isEdited: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     replyto: { type: mongoose.Schema.Types.ObjectId, ref: "Message", default: null },
-    file: { type: String, default: null }
+    file: { type: String, default: null },
+    isRead:{type:Boolean,default:false}
 
   },
   { timestamps: true }

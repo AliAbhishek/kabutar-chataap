@@ -9,6 +9,7 @@ import { onMessageListener, requestForToken } from "./Firebase/FirebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setFCMtoken } from "./redux/Slice/userSlice";
 import { useToast } from "@chakra-ui/react";
+import EditProfile from "./Pages/EditProfile";
 
 function App() {
   const location = useLocation();
@@ -93,10 +94,13 @@ function App() {
 
   return (
     <div className="App">
+      
       {location.pathname === "/" && <ParticlesEffect />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/chats" element={<ChatPage />} />
+        <Route path="/editProfile" element={<EditProfile />} />
+        
       </Routes>
     </div>
   );

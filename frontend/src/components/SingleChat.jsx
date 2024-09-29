@@ -158,6 +158,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     if (file || event.key === "Enter" && newMessage) {
       socket.emit("stop typing", chatdata._id);
       const formaData = new FormData();
+      console.log(chatdata,"chatdat")
       newMessage && formaData.append("content", newMessage);
       chatdata && formaData.append("chat", chatdata?._id);
       replymessageContent &&
@@ -238,6 +239,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     
     if(file){
       sendMessage()
+      setFile(null)
     }
 
   },[file])

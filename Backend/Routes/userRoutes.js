@@ -10,6 +10,7 @@ userRouter.post("/login",userController.login)
 
 userRouter.use(auth)
 userRouter.get("/",userController.search)
+userRouter.put("/editProfile",upload.fields([{name:"pic",maxCount:1}]),userController.editProfile)
 
 
 

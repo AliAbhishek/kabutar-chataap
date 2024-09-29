@@ -48,15 +48,23 @@ export const messageService = {
     },
     allMessages: async (req, res) => {
         const { chatId } = req.params;
+        const userId = req.user.userId
 
         // Find the messages and populate them before sending the response
         const data = await Message.find({ chat: chatId })
             .populate({ path: "sender", select: "-password" })
-            .populate("chat").populate("replyto");
+            .populate("chat").populate("replyto").populate({path:"readBy",select:"-password"})
 
         if (!data) {
             return errorRes(res, 404, "No messages found for this chat");
         }
+
+      let read=  await Message.updateMany(
+            { chat: chatId, isRead: false, readBy: { $ne: userId } }, // Only update unread messages that haven't been read by this user
+            { $addToSet: { readBy: userId }, $set: { isRead: true } } // Add user to readBy and set isRead to true
+        );
+
+        console.log(read,"read")
 
         return successRes(res, 200, "Messages fetched successfully", data);
 

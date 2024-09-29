@@ -158,6 +158,18 @@ export const deleteMessage = createAsyncThunk(
   }
 );
 
+export const editProfile = createAsyncThunk(
+  "editProfile",
+  async (details) => {
+    try {
+      let { data } = await userApi.put(`user/editProfile`,details);
+      return data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
+);
+
 
 
 
