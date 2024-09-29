@@ -3,13 +3,14 @@ import React, { useEffect } from "react";
 import HomePage from "./Pages/HomePage";
 import ChatPage from "./Pages/ChatPage";
 import "./App.css";
-import "../assets/style.css"
+import "../assets/style.css";
 import ParticlesEffect from "./components/ParticleEffect";
 import { onMessageListener, requestForToken } from "./Firebase/FirebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setFCMtoken } from "./redux/Slice/userSlice";
 import { useToast } from "@chakra-ui/react";
 import EditProfile from "./Pages/EditProfile";
+import ProtectedRoutes from "./components/ProtectedRoutes";
 
 function App() {
   const location = useLocation();
@@ -94,13 +95,13 @@ function App() {
 
   return (
     <div className="App">
-      
       {location.pathname === "/" && <ParticlesEffect />}
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/chats" element={<ChatPage />} />
-        <Route path="/editProfile" element={<EditProfile />} />
-        
+        <Route element={<ProtectedRoutes />}>
+          <Route path="/chats" element={<ChatPage />} />
+          <Route path="/editProfile" element={<EditProfile />} />
+        </Route>
       </Routes>
     </div>
   );
