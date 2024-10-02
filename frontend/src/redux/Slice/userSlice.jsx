@@ -7,7 +7,7 @@ const userSlice = createSlice({
     user: null,
     chatWithuser: null,
     chatData: null,
-    fcmToken: null,
+    // fcmToken: null,
   },
   reducers: {
     // Synchronous reducers
@@ -18,7 +18,7 @@ const userSlice = createSlice({
       state.user = null; // Reset user state
       state.chatWithuser = null;
       state.chatData = null; // Reset chat state
-      state.fcmToken = null;
+      // state.fcmToken = null;
       // reset other states as needed
     },
     chatNameStuff: (state, action) => {

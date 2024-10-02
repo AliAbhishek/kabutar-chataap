@@ -49,9 +49,19 @@ export const chatService = {
     fetchChat: async (req, res) => {
         const userId = req.user?.userId
         
-        const chats = await Chat.find({ users: { $elemMatch: { $eq: userId } } }).populate("users").populate("latestMessage").populate("groupAdmin").sort({ updatedAt: -1 })
-        
+        const chats = await Chat.find({ users: { $elemMatch: { $eq: userId } } }).populate("users").populate("latestMessage").populate("groupAdmin")
 
+        
+        
+        chats.sort((a, b) => {
+            const aTime = a.latestMessage?.updatedAt || 0; // Fallback in case latestMessage is null
+            const bTime = b.latestMessage?.updatedAt || 0; // Fallback in case latestMessage is null
+            return new Date(bTime) - new Date(aTime); // Sort in descending order
+        });
+
+       
+
+       
         if (!chats) {
             return errorRes(res, 400, "Chats can not fetched successfully")
 

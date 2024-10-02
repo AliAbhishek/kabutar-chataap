@@ -92,6 +92,7 @@ function SideDrawer() {
   };
 
   const accessChat = async (userId) => {
+    // debugger
     
     try {
       setLoadingChat(true);
@@ -107,7 +108,7 @@ function SideDrawer() {
       setSelectedChat(chattingUser);
 
       dispatch(chatWithUser(userId));
-      dispatch(chatNameStuff(chattingUser))
+      dispatch(chatNameStuff(data?.payload?.data))
       setLoadingChat(false);
       onClose();
     } catch (error) {

@@ -3,10 +3,11 @@ import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
 import { VStack, Text } from "@chakra-ui/layout";
 import { useToast } from "@chakra-ui/toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editProfile, registration } from "../../redux/actions/userActions";
 import { useNavigate } from "react-router-dom";
+import { requestForToken } from "../../Firebase/FirebaseConfig";
 
 const Signup = ({ purpose }) => {
   const dispatch = useDispatch();
@@ -21,6 +22,19 @@ const Signup = ({ purpose }) => {
   const [password, setPassword] = useState();
   const [pic, setPic] = useState();
   const [picLoading, setPicLoading] = useState(false);
+  const [fcmToken, setFCMtoken] = useState(false);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fcmToken = await requestForToken();
+      console.log(fcmToken,"fcmtoken")
+      setFCMtoken(fcmToken)
+      
+      
+      // dispatch(setFCMtoken(fcmToken));
+    };
+  fetchToken()
+  }, []);
 
   const submitHandler = async () => {
     setPicLoading(true);
@@ -68,7 +82,7 @@ const Signup = ({ purpose }) => {
    name && formData.append("name", name);
    email && formData.append("email", email);
    password && formData.append("password", password);
-   fcm && formData.append("deviceToken", fcm);
+   fcmToken && formData.append("deviceToken", fcmToken);
    pic &&  formData.append("pic", pic);
 
     
@@ -87,6 +101,7 @@ const Signup = ({ purpose }) => {
      !purpose && sessionStorage.setItem("token", data?.payload?.data?.token);
       // window.location.href = "/chats";
       navigate("/chats");
+      // navigate("/")
     } else {
       toast({
         title: data?.payload?.message,

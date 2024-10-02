@@ -1,5 +1,13 @@
 import { AddIcon } from "@chakra-ui/icons";
-import { Box, Stack, Text, Avatar, Button, Center } from "@chakra-ui/react";
+import {
+  Box,
+  Stack,
+  Text,
+  Avatar,
+  Button,
+  Center,
+  Badge,
+} from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/toast";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +22,7 @@ const MyChats = ({ fetchAgain }) => {
   const dispatch = useDispatch();
   const chatWithUserData = useSelector((state) => state.userData.chatWithuser);
   const user = useSelector((state) => state.userData.user);
+
   const chatdata = useSelector((state) => state.userData.chatData);
 
   const defaultOptions = {
@@ -98,55 +107,77 @@ const MyChats = ({ fetchAgain }) => {
         {chats ? (
           <Stack spacing={3} overflowY="auto" maxH="calc(100% - 60px)">
             {chats.length > 0 ? (
-              chats.map((chat) => (
-                <Box
-                  key={chat._id}
-                  style={{ display: "flex", gap: "10px" }}
-                  onClick={() => {
-                    // Dispatch action on click
-                    dispatch(chatNameStuff(chat));
-                    dispatch(chatWithUser(getChatId(chat)));
-                  }}
-                  cursor="pointer"
-                  bg={
-                    getChatId(chat) === chatWithUserData
-                      ? "#38B2AC" // Highlighted background
-                      : "#E8E8E8" // Default background
-                  }
-                  color={
-                    getChatId(chat) === chatWithUserData
-                      ? "white" // Highlighted text color
-                      : "black" // Default text color
-                  }
-                  px={3}
-                  py={2}
-                  borderRadius="lg"
-                >
-                  <Avatar
-                  marginTop="6px"
-                    size="sm"
+              chats.map((chat) => {
+                console.log(
+                  chat?.unreadMessageCounts[user?._id],
+                  "==========================="
+                );
+                return (
+                  <Box
+                    key={chat._id}
+                    style={{ display: "flex", gap: "10px" }}
+                    onClick={() => {
+                      // Dispatch action on click
+                      dispatch(chatNameStuff(chat));
+                      dispatch(chatWithUser(getChatId(chat)));
+                    }}
                     cursor="pointer"
-                    name={
-                      !chat.isGroupChat
-                        ? chat.users.find((x) => x._id !== user._id)?.name
-                        : chat.chatName
+                    bg={
+                      getChatId(chat) === chatWithUserData
+                        ? "#38B2AC" // Highlighted background
+                        : "#E8E8E8" // Default background
                     }
-                    src={
-                      !chat.isGroupChat
-                        ? chat.users.find((x) => x._id !== user._id)?.pic
-                        : ""
+                    color={
+                      getChatId(chat) === chatWithUserData
+                        ? "white" // Highlighted text color
+                        : "black" // Default text color
                     }
-                  />
-                  <Box>
-                    <Text style={{fontWeight:"bold"}}>
-                      {!chat.isGroupChat
-                        ? chat.users.find((x) => x._id !== user._id)?.name
-                        : chat.chatName}
-                    </Text>
-                    <Text style={{fontSize:"13px"}}>{chat?.latestMessage?.content}</Text>
+                    px={3}
+                    py={2}
+                    borderRadius="lg"
+                  >
+                    <Avatar
+                      marginTop="6px"
+                      size="sm"
+                      cursor="pointer"
+                      name={
+                        !chat.isGroupChat
+                          ? chat.users.find((x) => x._id !== user._id)?.name
+                          : chat.chatName
+                      }
+                      src={
+                        !chat.isGroupChat
+                          ? chat.users.find((x) => x._id !== user._id)?.pic
+                          : ""
+                      }
+                    />
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      width="100%"
+                    >
+                      <Box>
+                        <Text style={{ fontWeight: "bold" }}>
+                          {!chat.isGroupChat
+                            ? chat.users.find((x) => x._id !== user._id)?.name
+                            : chat.chatName}
+                        </Text>
+                        <Text style={{ fontSize: "13px" }}>
+                          {chat?.latestMessage?.content}
+                        </Text>
+                      </Box>
+                      <Box>
+                        {chat?.unreadMessageCounts[user?._id] > 0 && (
+                          <Badge colorScheme="blue" borderRadius="full" px={2}>
+                            {chat.unreadMessageCounts[user?._id]}
+                          </Badge>
+                        )}
+                      </Box>
+                    </Box>
                   </Box>
-                </Box>
-              ))
+                );
+              })
             ) : (
               <Box
                 display="flex"

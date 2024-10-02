@@ -17,6 +17,7 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    
     deviceToken:{type:"String",required: false}
   },
   { timestaps: true }

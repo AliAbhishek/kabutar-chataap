@@ -14,8 +14,7 @@ import ProtectedRoutes from "./components/ProtectedRoutes";
 
 function App() {
   const location = useLocation();
-  const fcm = useSelector((state) => state.userData.fcmToken);
-  console.log(fcm, "fcmtoken");
+ 
   const dispatch = useDispatch();
   const toast = useToast();
 
@@ -33,16 +32,16 @@ function App() {
       });
   }
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      const fcmToken = await requestForToken();
-      // console.log(fcmToken,"fcmtoken")
-      dispatch(setFCMtoken(fcmToken));
-    };
-    if (!fcm) {
-      fetchToken();
-    }
-  }, []);
+  // useEffect(() => {
+  //   const fetchToken = async () => {
+  //     const fcmToken = await requestForToken();
+  //     // console.log(fcmToken,"fcmtoken")
+  //     // dispatch(setFCMtoken(fcmToken));
+  //   };
+  //   if (!fcm) {
+  //     fetchToken();
+  //   }
+  // }, [fcm,dispatch]);
 
   onMessageListener().then((payload) => {
     toast({

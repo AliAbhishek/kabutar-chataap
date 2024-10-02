@@ -22,13 +22,13 @@ export const messageService = {
         let cloudinaryImage
         if (req?.files?.file) {
             let image = req.files.file[0].path
-             cloudinaryImage = await uploadOnCloudinary(image)
+            cloudinaryImage = await uploadOnCloudinary(image)
         }
 
         const data = {
             sender: req.user.userId,
             chat,
-            content, replyto ,file:cloudinaryImage?.url
+            content, replyto, file: cloudinaryImage?.url
         }
 
         let message = await Message.create(data)
@@ -37,10 +37,20 @@ export const messageService = {
         message = await message.populate("chat")
         message = await User.populate(message, { path: "chat.users", select: "-password" })
 
+        const chatUsers = await Chat.findById(chat).select('users');
+        const otherUsers = chatUsers.users.filter(user => user.toString() !== req.user.userId);
+        const update = {};
+        otherUsers.forEach(user => {
+            update[`unreadMessageCounts.${user}`] = 1; // Increment for each other user
+        });
+
+        console.log(update, "update")
 
         await Chat.findByIdAndUpdate(chat, {
-            latestMessage: message
-        })
+            latestMessage: message,
+            $inc: update
+        }, { new: true });
+
 
         return successRes(res, 200, "message send successfully", message)
 
@@ -53,18 +63,38 @@ export const messageService = {
         // Find the messages and populate them before sending the response
         const data = await Message.find({ chat: chatId })
             .populate({ path: "sender", select: "-password" })
-            .populate("chat").populate("replyto").populate({path:"readBy",select:"-password"})
+            .populate("chat").populate("replyto").populate({ path: "readBy", select: "-password" })
+
+        // console.log(data, "data")
 
         if (!data) {
             return errorRes(res, 404, "No messages found for this chat");
         }
 
-      let read=  await Message.updateMany(
-            { chat: chatId, isRead: false, readBy: { $ne: userId } }, // Only update unread messages that haven't been read by this user
-            { $addToSet: { readBy: userId }, $set: { isRead: true } } // Add user to readBy and set isRead to true
-        );
+
+
+          let read=  await Message.updateMany(
+                { chat: chatId, isRead: false, readBy: { $ne: userId } }, // Only update unread messages that haven't been read by this user
+                { $addToSet: { readBy: userId }, $set: { isRead: true } } // Add user to readBy and set isRead to true
+            );
 
         console.log(read,"read")
+
+
+
+        await Chat.findByIdAndUpdate(chatId, {
+            $set: { [`unreadMessageCounts.${userId}`]: 0 }
+        }, { new: true });
+
+
+
+
+        await Message.updateMany(
+            { chat: chatId, isRead: false }, // Only update unread messages that haven't been read by this user
+            { $set: { isRead: true } }, { new: true }// Add user to readBy and set isRead to true
+        );
+
+
 
         return successRes(res, 200, "Messages fetched successfully", data);
 

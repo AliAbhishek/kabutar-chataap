@@ -5,23 +5,32 @@ import ScrollableFeed from "react-scrollable-feed";
 import {
   Avatar,
   Box,
+  Button,
   Flex,
   IconButton,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Text,
   Tooltip,
   useDisclosure,
 } from "@chakra-ui/react";
-import { FaEllipsisV } from "react-icons/fa";
+import { FaEllipsisV, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRef, useState } from "react";
 import {
   deleteMessage,
   editMessage,
   getMessages,
 } from "../redux/actions/userActions";
+import UserListItem from "./UserListItem";
 // import {
 //   isLastMessage,
 //   isSameSender,
@@ -86,8 +95,13 @@ const ScrollableChat = ({
   console.log(messages, "messages");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isopen, setIsOpen] = useState(false);
+
+  const onOpenModal = () => setIsOpen(true);
+  const onCloseModal = () => setIsOpen(false);
   const [currentMessageId, setCurrentMessageId] = useState(null);
   const [highlightedMessage, setHighlightedMessage] = useState(null);
+  const [usersWhoReadMessages, setusersWhoReadMessages] = useState(null);
 
   const messageRefs = useRef([]);
 
@@ -100,158 +114,294 @@ const ScrollableChat = ({
   };
 
   return (
-    <ScrollableFeed className="custom-scroll">
-      {messages &&
-        messages.map((m, i) => (
-          <Flex
-            key={m._id}
-            align="center"
-            marginY={2}
-            direction={m?.sender?._id === user?._id ? "row-reverse" : "row"}
-            ref={(el) => (messageRefs.current[i] = el)}
-          >
-            {(isSameSender(messages, m, i, user._id) ||
-              isLastMessage(messages, i, user._id)) && (
-              <Tooltip
-                label={m?.sender?.name}
-                placement="bottom-start"
-                hasArrow
+    <>
+      <ScrollableFeed className="custom-scroll">
+        {messages &&
+          messages.map((m, i) => {
+            return (
+              <Flex
+                key={m._id}
+                align="center"
+                marginY={2}
+                direction={m?.sender?._id === user?._id ? "row-reverse" : "row"}
+                ref={(el) => (messageRefs.current[i] = el)}
               >
-                <Avatar
-                  mt="7px"
-                  mr={1}
-                  size="sm"
-                  cursor="pointer"
-                  name={m?.sender?.name}
-                  src={m?.sender?.pic}
-                />
-              </Tooltip>
-            )}
-            <Flex
-              style={{
-                backgroundColor:
-                  highlightedMessage === m._id
-                    ? "#38B2AC" // Highlight color
-                    : m?.isDeleted
-                    ? "#f8d7da" // Background for deleted
-                    : m?.sender?._id === user?._id
-                    ? "#BEE3F8"
-                    : "#B9F5D0", // Background for non-deleted
-                marginLeft: isSameSenderMargin(messages, m, i, user?._id),
-                marginTop: isSameUser(messages, m, i, user?._id) ? 3 : 10,
-                borderRadius: "20px",
-                padding: "5px 15px",
-                transition: "background-color 0.5s ease, color 0.5s ease", // Add both transitions
-                // color: highlightedMessage === m._id ? "#38B2AC" : "initial", // Set color or fallback
-              }}
-              direction="column"
-              align={m.sender?._id === user?._id ? "flex-end" : "flex-start"}
-              position="relative" // Ensure this container is positioned relative
-            >
-              {m?.replyto && (
-                <Box
-                  bg="gray.100"
-                  p={2}
-                  borderRadius="md"
-                  borderLeft="4px solid teal"
-                  mb={2}
-                  maxWidth="100%"
-                  onClick={() => scrollToMessage(m?.replyto?._id)} // Scroll to original message on click
-                  cursor="pointer"
-                >
-                  <Text>Replying to: {m?.replyto?.content || m?.replyto?.file && <img style={{height:"200px",width:"200px",objectFit:"cover"}} src={m?.replyto?.file}/> }</Text>
-                </Box>
-              )}
-              <Box
-                // bg={m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0"}
-                borderRadius="20px"
-                padding="5px 15px"
-                position="relative" // Ensure this box is positioned relative
-                display="inline-block"
-              >
-                <Tooltip
-                  label={new Intl.DateTimeFormat("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }).format(new Date(m?.createdAt))}
-                  placement="bottom-start"
-                  hasArrow
-                >
-                  <Text>{m?.content || m?.file && <img style={{height:"200px",width:"200px",objectFit:"cover"}} src={m?.file}/>}</Text>
-                </Tooltip>
-
-                <Text
-                  fontSize="10px"
-                  color="gray.500"
-                  textAlign={m?.sender?._id === user?._id ? "right" : "left"}
-                >
-                  {new Date(m?.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                  {m?.isEdited && " (Edited)"}
-                </Text>
-                {!m?.isDeleted && (
-                  <Menu
-                    isOpen={currentMessageId === m?._id && isOpen}
-                    onClose={onClose}
-                    placement="auto-end"
+                {(isSameSender(messages, m, i, user._id) ||
+                  isLastMessage(messages, i, user._id)) && (
+                  <Tooltip
+                    label={m?.sender?.name}
+                    placement="bottom-start"
+                    hasArrow
                   >
-                    <MenuButton
-                      as={IconButton}
-                      aria-label="Options"
-                      icon={<FaEllipsisV />}
+                    <Avatar
+                      mt="7px"
+                      mr={1}
                       size="sm"
-                      variant="unstyled"
-                      onClick={() => {
-                        setCurrentMessageId(m?._id);
-                        onOpen();
-                      }}
-                      position="absolute"
-                      right="-22px" // Adjust if needed
-                      top="6px" // Adjust if needed
-                      zIndex="tooltip" // Ensure it is above other elements
+                      cursor="pointer"
+                      name={m?.sender?.name}
+                      src={m?.sender?.pic}
                     />
-                    <MenuList>
-                      <MenuItem onClick={() => handleReplyto(m)}>
-                        Reply
-                      </MenuItem>
-                      {m?.sender?._id === user?._id && (
-                        <>
-                        {
-                          !m?.file && <MenuItem
-                          onClick={() => {
-                            setNewMessage(m?.content);
-                            setMessageId(currentMessageId);
-                          }}
-                          // onKeyDown={sendMessage(true,currentMessageId)}
-                        >
-                          Edit
-                        </MenuItem>
-                        }
-                          
-                          <MenuItem
-                            onClick={() => {
-                              dispatch(
-                                deleteMessage({ messageId: currentMessageId })
-                              );
-                              setFetchAgain(!fetchAgain);
-                            }}
-                          >
-                            Delete
-                          </MenuItem>
-                        </>
-                      )}
-                    </MenuList>
-                  </Menu>
+                  </Tooltip>
                 )}
-              </Box>
-            </Flex>
-          </Flex>
-        ))}
-    </ScrollableFeed>
+                <Flex
+                  style={{
+                    backgroundColor:
+                      highlightedMessage === m._id
+                        ? "#38B2AC" // Highlight color
+                        : m?.isDeleted
+                        ? "#f8d7da" // Background for deleted
+                        : m?.sender?._id === user?._id
+                        ? "#BEE3F8"
+                        : "#B9F5D0", // Background for non-deleted
+                    marginLeft: isSameSenderMargin(messages, m, i, user?._id),
+                    marginTop: isSameUser(messages, m, i, user?._id) ? 3 : 10,
+                    borderRadius: "20px",
+                    padding: "5px 15px",
+                    transition: "background-color 0.5s ease, color 0.5s ease", // Add both transitions
+                    // color: highlightedMessage === m._id ? "#38B2AC" : "initial", // Set color or fallback
+                  }}
+                  direction="column"
+                  align={
+                    m.sender?._id === user?._id ? "flex-end" : "flex-start"
+                  }
+                  position="relative" // Ensure this container is positioned relative
+                >
+                  {m?.replyto && (
+                    <Box
+                      bg="gray.100"
+                      p={2}
+                      borderRadius="md"
+                      borderLeft="4px solid teal"
+                      mb={2}
+                      maxWidth="100%"
+                      onClick={() => scrollToMessage(m?.replyto?._id)} // Scroll to original message on click
+                      cursor="pointer"
+                    >
+                      <Text>
+                        Replying to:{" "}
+                        {m?.replyto?.content ||
+                          (m?.replyto?.file && (
+                            <img
+                              style={{
+                                height: "200px",
+                                width: "200px",
+                                objectFit: "cover",
+                              }}
+                              src={m?.replyto?.file}
+                            />
+                          ))}
+                      </Text>
+                    </Box>
+                  )}
+                  <Box
+                    // bg={m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0"}
+                    borderRadius="20px"
+                    padding="5px 15px"
+                    position="relative" // Ensure this box is positioned relative
+                    display="inline-block"
+                  >
+                    <Tooltip
+                      label={new Intl.DateTimeFormat("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }).format(new Date(m?.createdAt))}
+                      placement="bottom-start"
+                      hasArrow
+                    >
+                      <Text>
+                        {m?.content ||
+                          (m?.file && (
+                            <img
+                              style={{
+                                height: "200px",
+                                width: "200px",
+                                objectFit: "cover",
+                              }}
+                              src={m?.file}
+                            />
+                          ))}
+                      </Text>
+                    </Tooltip>
+
+                    <Text
+                      fontSize="10px"
+                      color="gray.500"
+                      textAlign={
+                        m?.sender?._id === user?._id ? "right" : "left"
+                      }
+                    >
+                      {new Date(m?.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {m?.isEdited && " (Edited)"}
+                    </Text>
+                    {!m?.isDeleted && (
+                      <Menu
+                        isOpen={currentMessageId === m?._id && isOpen}
+                        onClose={onClose}
+                        placement="auto-end"
+                      >
+                        <MenuButton
+                          as={IconButton}
+                          aria-label="Options"
+                          icon={<FaEllipsisV />}
+                          size="sm"
+                          variant="unstyled"
+                          onClick={() => {
+                            setCurrentMessageId(m?._id);
+                            onOpen();
+                          }}
+                          position="absolute"
+                          right="-22px" // Adjust if needed
+                          top="6px" // Adjust if needed
+                          zIndex="tooltip" // Ensure it is above other elements
+                        />
+                        <MenuList>
+                          {m?.chat?.isGroupChat && (
+                            <MenuItem
+                              onClick={() => {
+                                onOpenModal();
+                                setusersWhoReadMessages(m?.readBy);
+                              }}
+                            >
+                              Info
+                            </MenuItem>
+                          )}
+
+                          <MenuItem onClick={() => handleReplyto(m)}>
+                            Reply
+                          </MenuItem>
+                          {m?.sender?._id === user?._id && (
+                            <>
+                              {!m?.file && (
+                                <MenuItem
+                                  onClick={() => {
+                                    setNewMessage(m?.content);
+                                    setMessageId(currentMessageId);
+                                  }}
+                                  // onKeyDown={sendMessage(true,currentMessageId)}
+                                >
+                                  Edit
+                                </MenuItem>
+                              )}
+
+                              <MenuItem
+                                onClick={() => {
+                                  dispatch(
+                                    deleteMessage({
+                                      messageId: currentMessageId,
+                                    })
+                                  );
+                                  setFetchAgain(!fetchAgain);
+                                }}
+                              >
+                                Delete
+                              </MenuItem>
+                            </>
+                          )}
+                        </MenuList>
+                        {m?.sender?._id === user?._id &&
+                        m?.chat?.isGroupChat ? (
+                          m?.readBy?.length == m?.chat?.users?.length - 1 ? (
+                            <Box
+                              position="absolute"
+                              right="-5px"
+                              top="35px" // Adjust to position the ticks below the menu button
+                              display="flex"
+                              alignItems="center"
+                            >
+                              <Box marginRight="2px">
+                                <FaEye size={10} color="green" />{" "}
+                                {/* Open eye icon */}
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Box
+                              position="absolute"
+                              right="-5px"
+                              top="35px" // Adjust to position the ticks below the menu button
+                              display="flex"
+                              alignItems="center"
+                            >
+                              <Box marginRight="2px">
+                                <FaEyeSlash size={10} color="red" />{" "}
+                                {/* Closed eye icon */}
+                              </Box>
+                            </Box>
+                          )
+                        ) : (
+                          m?.sender?._id === user?._id && (
+                            <span>
+                              {" "}
+                              {m.readBy.length > 0 &&
+                              m?.readBy?.map((x) =>
+                                console.log(
+                                  x?._id ==
+                                    chatdata?.users?.find(
+                                      (x) => x?._id == user?._id
+                                    )?._id,
+                                  "aabaabababa"
+                                )
+                              ) ? (
+                                <Box
+                                  position="absolute"
+                                  right="-5px"
+                                  top="35px" // Adjust to position the ticks below the menu button
+                                  display="flex"
+                                  alignItems="center"
+                                >
+                                  <Box marginRight="2px">
+                                    <FaEye size={10} color="green" />{" "}
+                                    {/* Open eye icon */}
+                                  </Box>
+                                </Box>
+                              ) : (
+                                <Box
+                                  position="absolute"
+                                  right="-5px"
+                                  top="35px" // Adjust to position the ticks below the menu button
+                                  display="flex"
+                                  alignItems="center"
+                                >
+                                  <Box marginRight="2px">
+                                    <FaEyeSlash size={10} color="red" />{" "}
+                                    {/* Closed eye icon */}
+                                  </Box>
+                                </Box>
+                              )}
+                            </span>
+                          )
+                        )}
+                      </Menu>
+                    )}
+                  </Box>
+                </Flex>
+              </Flex>
+            );
+          })}
+      </ScrollableFeed>
+
+      <Modal isOpen={isopen} onClose={onCloseModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Read By</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {usersWhoReadMessages?.map((user) => {
+              return <UserListItem user={user} />;
+            })}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={onCloseModal}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
   );
 };
 

@@ -2,17 +2,18 @@ import { Button } from "@chakra-ui/button";
 import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
 import { VStack } from "@chakra-ui/layout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@chakra-ui/react";
 import { login } from "../../redux/actions/userActions";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { requestForToken } from "../../Firebase/FirebaseConfig";
 
 const Login = () => {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.userData.user);
-  const fcm = useSelector((state) => state.userData.fcmToken);
+  
   
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
@@ -21,6 +22,19 @@ const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [loading, setLoading] = useState(false);
+  const [fcmToken, setFCMtoken] = useState(false);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fcmToken = await requestForToken();
+      console.log(fcmToken,"fcmtoken")
+      setFCMtoken(fcmToken)
+      
+      
+      // dispatch(setFCMtoken(fcmToken));
+    };
+  fetchToken()
+  }, []);
 
   const submitHandler = async () => {
     setLoading(true);
@@ -36,7 +50,7 @@ const Login = () => {
       return;
     }
 
-    let data = await dispatch(login({ email, password,deviceToken:fcm }));
+    let data = await dispatch(login({ email, password,deviceToken:fcmToken }));
 
     if (data?.payload?.success) {
       setLoading(false);

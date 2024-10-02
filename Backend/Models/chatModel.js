@@ -10,7 +10,13 @@ const chatModel = mongoose.Schema(
       ref: "Message",
     },
     groupAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    unreadCount:{type:Number,default:0}
+    unreadMessageCounts: {
+      type: Map,
+      of: Number,
+      default: {}
+  }
+  
+  
   },
   { timestamps: true }
 );

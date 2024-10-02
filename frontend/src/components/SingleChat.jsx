@@ -40,6 +40,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const chatdata = useSelector((state) => state.userData.chatData);
   const user = useSelector((state) => state.userData.user);
 
+  console.log(chatdata,"ccchhhaaattt")
+
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -106,6 +108,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   console.log(socketConnected, "socket");
 
   useEffect(() => {
+    // debugger
     const fetchMessages = async () => {
       if (!chatWithUserData) return;
 
