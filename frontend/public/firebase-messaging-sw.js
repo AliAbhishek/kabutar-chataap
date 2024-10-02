@@ -38,3 +38,16 @@ messaging.onBackgroundMessage((payload) => {
 
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+self.addEventListener('notificationclick', (event) => {
+    console.log('Notification click received:', event.notification.data);
+
+    const url = "https://kabutar-chataap.onrender.com/chats"; // Get the URL from the notification data
+
+    event.notification.close(); // Close the notification
+
+    // Open the URL in a new window or tab
+    event.waitUntil(
+        clients.openWindow(url)
+    );
+});
