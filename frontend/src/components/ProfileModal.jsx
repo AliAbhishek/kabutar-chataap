@@ -104,6 +104,7 @@ const ProfileModal = ({ user, children }) => {
                   transform: "rotate(10deg) scale(1.1)",
                   transition: "all 0.3s ease-in-out",
                 }}
+                objectFit="cover"
               />
               <Text
                 fontSize={{ base: "26px", md: "30px" }}

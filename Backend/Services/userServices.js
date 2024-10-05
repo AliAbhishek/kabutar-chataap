@@ -107,33 +107,87 @@ export const userServices = {
     },
 
     editProfile: async (req, res) => {
-        let userId = req.user.userId
-        console.log(userId, "userId")
-        const { name, email } = req.body
+        let userId = req.user.userId;
+        console.log(userId, "userId");
+        const { name, email } = req.body;
         let image;
-        let cloudinaryImage
+        let backgroundPic;
+        let cloudinarybgImage;
+        let cloudinaryImage;
+
+        // If a profile picture is uploaded
         if (req?.files?.pic) {
-            image = req.files.pic[0].path
-            cloudinaryImage = await uploadOnCloudinary(image)
+            image = req.files.pic[0].path;
+            cloudinaryImage = await uploadOnCloudinary(image);
         }
 
-        console.log(name,"name")
+        // If a background picture is uploaded
+        if (req?.files?.backgroundPic) {
+            backgroundPic = req.files.backgroundPic[0].path;
+            cloudinarybgImage = await uploadOnCloudinary(backgroundPic);
+        }
+
+        console.log(req.body.backgroundPic, "req.body.backgroundPic");
+
+        // Get the current user data
+        const currentUser = await User.findById(userId);
+        console.log(currentUser, "current")
+        console.log("Request body:", req.body);
+        console.log("Files received:", req.files);
+
+        // Prepare data for update
+        let updateData = {
+            name,
+            email,
+        };
 
 
-        let userExist = await User.findByIdAndUpdate(userId, {
-            $set: {
-                name, email, pic: cloudinaryImage?.url
-            }
-        }, { new: true })
 
+        // Handle the backgroundPic logic
+        if (req.body.backgroundPic && (req.body.backgroundPic === null || req.body.backgroundPic === 'null')) {
+
+            // User clicked on remove, use $unset to remove backgroundPic field from the document
+            let data = await User.findByIdAndUpdate(userId, {
+                $unset: { backgroundPic: "" }
+            }, { new: true });
+
+            console.log(data, "aaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        } else if (!req?.files?.backgroundPic && !req.body.backgroundPic) {
+            // No new background uploaded, retain the current background picture
+            cloudinarybgImage = { url: currentUser.backgroundPic };
+            updateData.backgroundPic = cloudinarybgImage.url;
+        } else if (cloudinarybgImage?.url) {
+            // If a new background is uploaded, set it
+            updateData.backgroundPic = cloudinarybgImage.url;
+        }
+
+        console.log(cloudinarybgImage, "cloudinarybgImage");
+
+
+        // Update profile picture if provided
+        if (cloudinaryImage?.url) {
+            updateData.pic = cloudinaryImage.url;
+        }
+
+        // Update backgroundPic only if a new one is uploaded or if it's being removed
+        if (cloudinarybgImage?.url || cloudinarybgImage === null) {
+            updateData.backgroundPic = cloudinarybgImage?.url || null;
+        }
+
+        // Update user profile
+        let userExist = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true }
+        );
 
         if (!userExist) {
-            return errorRes(res, 400, "User did not exist")
+            return errorRes(res, 400, "User did not exist");
         } else {
-            return successRes(res, 201, "User profile updated successfully", userExist)
+            return successRes(res, 201, "User profile updated successfully", userExist);
         }
-
     }
+
 
 
 }

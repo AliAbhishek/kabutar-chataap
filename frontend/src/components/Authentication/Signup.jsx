@@ -11,6 +11,8 @@ import { requestForToken } from "../../Firebase/FirebaseConfig";
 
 const Signup = ({ purpose }) => {
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.userData.user);
+  console.log(user, "user");
   const fcm = useSelector((state) => state.userData.fcmToken);
   const [show, setShow] = useState(false);
   const handleClick = () => setShow(!show);
@@ -21,19 +23,31 @@ const Signup = ({ purpose }) => {
   const [confirmpassword, setConfirmpassword] = useState();
   const [password, setPassword] = useState();
   const [pic, setPic] = useState();
+  const [picName, setPicName] = useState();
+  const [backgroundpic, setBacgroundPic] = useState();
+  const [backgroundPicName, setbackgroundPicName] = useState();
   const [picLoading, setPicLoading] = useState(false);
   const [fcmToken, setFCMtoken] = useState(false);
 
   useEffect(() => {
+    if (user) {
+      setName(user?.name);
+      setEmail(user?.email);
+      setPicName(user?.pic);
+      setbackgroundPicName(user?.backgroundPic);
+    }
+  }, [user]);
+  console.log(backgroundpic, "back");
+
+  useEffect(() => {
     const fetchToken = async () => {
       const fcmToken = await requestForToken();
-      console.log(fcmToken,"fcmtoken")
-      setFCMtoken(fcmToken)
-      
-      
+      console.log(fcmToken, "fcmtoken");
+      setFCMtoken(fcmToken);
+
       // dispatch(setFCMtoken(fcmToken));
     };
-  fetchToken()
+    fetchToken();
   }, []);
 
   const submitHandler = async () => {
@@ -79,15 +93,20 @@ const Signup = ({ purpose }) => {
     }
 
     let formData = new FormData();
-   name && formData.append("name", name);
-   email && formData.append("email", email);
-   password && formData.append("password", password);
-   fcmToken && formData.append("deviceToken", fcmToken);
-   pic &&  formData.append("pic", pic);
+    name && formData.append("name", name);
+    email && formData.append("email", email);
+    password && formData.append("password", password);
+    fcmToken && formData.append("deviceToken", fcmToken);
+    pic && formData.append("pic", pic);
+    if (backgroundpic === null) {
+      formData.append("backgroundPic", null); // This will send it as null
+  } else if (backgroundpic) {
+      formData.append("backgroundPic", backgroundpic);
+  }
 
-    
-
-    let data = purpose ? await dispatch(editProfile(formData)) : await dispatch(registration(formData));
+    let data = purpose
+      ? await dispatch(editProfile(formData))
+      : await dispatch(registration(formData));
 
     if (data?.payload?.success) {
       setPicLoading(false);
@@ -98,7 +117,7 @@ const Signup = ({ purpose }) => {
         isClosable: true,
         position: "bottom",
       });
-     !purpose && sessionStorage.setItem("token", data?.payload?.data?.token);
+      !purpose && sessionStorage.setItem("token", data?.payload?.data?.token);
       // window.location.href = "/chats";
       navigate("/chats");
       // navigate("/")
@@ -128,6 +147,7 @@ const Signup = ({ purpose }) => {
           onChange={(e) => setName(e.target.value)}
           color="white"
           _placeholder={{ color: "gray.400" }}
+          value={name}
         />
       </FormControl>
       <FormControl id="email" isRequired>
@@ -138,6 +158,7 @@ const Signup = ({ purpose }) => {
           onChange={(e) => setEmail(e.target.value)}
           color="white"
           _placeholder={{ color: "gray.400" }}
+          value={email}
         />
       </FormControl>
       {!purpose && (
@@ -188,8 +209,41 @@ const Signup = ({ purpose }) => {
           accept="image/*"
           onChange={(e) => setPic(e.target.files[0])}
           color="white"
+          // value={pic}
         />
+        {picName && <Text color="white">Selected: {picName}</Text>}
       </FormControl>
+      {purpose && (
+        <FormControl id="pic">
+          <FormLabel color="white">
+            Upload your Chat Background Picture
+          </FormLabel>
+          <div style={{ display: "flex", gap: "5px" }}>
+            <Input
+              type="file"
+              p={1.5}
+              accept="image/*"
+              onChange={(e) => setBacgroundPic(e.target.files[0])}
+              color="white"
+              // value={backgroundpic}
+            />
+            <Button
+              colorScheme="blue"
+              onClick={() => {
+                setBacgroundPic(null);
+                setbackgroundPicName(null);
+              }}
+            >
+              Remove
+            </Button>
+          </div>
+
+          {backgroundPicName && (
+            <Text color="white">Selected: {backgroundPicName}</Text>
+          )}
+        </FormControl>
+      )}
+
       <Button
         colorScheme="blue"
         width="100%"

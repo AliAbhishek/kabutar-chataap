@@ -17,8 +17,14 @@ import GroupChatModal from "./GroupChatmodal";
 import ChatLoading from "./ChatLoading";
 import animationData from "../Animation/chatanimationdata.json";
 import Lottie from "react-lottie";
+import { io } from "socket.io-client";
+
+let socket;
+const token = sessionStorage.getItem("token");
 
 const MyChats = ({ fetchAgain }) => {
+  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  const Endpoint = "http://192.168.56.1:8000/";
   const dispatch = useDispatch();
   const chatWithUserData = useSelector((state) => state.userData.chatWithuser);
   const user = useSelector((state) => state.userData.user);
@@ -51,6 +57,31 @@ const MyChats = ({ fetchAgain }) => {
   useEffect(() => {
     fetchChats();
   }, [fetchAgain, flag, chatdata, chatWithUser]);
+
+  useEffect(() => {
+   
+
+    socket = io(Endpoint, {
+      extraHeaders: {
+        Authorization: token,
+      },
+    });
+
+    if (socket) {
+      socket.on("checkunread-count", (data) => {
+        console.log(data,"dddddddddddddddddddddddddddddddddddddddddddddddd")
+        // setMessages((prevMessages) => [...prevMessages, data]);/
+        // fetchMessages();
+        // callChatApi()
+        fetchChats();
+        
+      });
+
+    
+    }
+
+
+  }, [Endpoint]);
 
   const getChatId = (chat) => {
     if (chat?.isGroupChat) {
@@ -120,6 +151,25 @@ const MyChats = ({ fetchAgain }) => {
                       // Dispatch action on click
                       dispatch(chatNameStuff(chat));
                       dispatch(chatWithUser(getChatId(chat)));
+                      socket = io(Endpoint, {
+                        extraHeaders: {
+                          Authorization: token,
+                        },
+                      });
+                  
+                      if (socket) {
+                        socket.on("clearunread-count", (data) => {
+                          console.log(data,"clearunread-count")
+                          // setMessages((prevMessages) => [...prevMessages, data]);/
+                          // fetchMessages();
+                          // callChatApi()
+                          fetchChats();
+                          
+                        });
+                  
+                      
+                      }
+
                     }}
                     cursor="pointer"
                     bg={

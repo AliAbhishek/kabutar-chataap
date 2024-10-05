@@ -46,10 +46,16 @@ export const messageService = {
 
         console.log(update, "update")
 
-        await Chat.findByIdAndUpdate(chat, {
+        let datawithcount=await Chat.findByIdAndUpdate(chat, {
             latestMessage: message,
             $inc: update
         }, { new: true });
+
+        // Emit the new message to the chat room via socket
+        global.io.emit("checkunread-count", {
+            datawithcount,
+
+        });
 
 
         return successRes(res, 200, "message send successfully", message)
@@ -73,12 +79,12 @@ export const messageService = {
 
 
 
-          let read=  await Message.updateMany(
-                { chat: chatId, isRead: false, readBy: { $ne: userId } }, // Only update unread messages that haven't been read by this user
-                { $addToSet: { readBy: userId }, $set: { isRead: true } } // Add user to readBy and set isRead to true
-            );
+        let read = await Message.updateMany(
+            { chat: chatId, isRead: false, readBy: { $ne: userId } }, // Only update unread messages that haven't been read by this user
+            { $addToSet: { readBy: userId }, $set: { isRead: true } } // Add user to readBy and set isRead to true
+        );
 
-        console.log(read,"read")
+      
 
 
 
@@ -93,6 +99,11 @@ export const messageService = {
             { chat: chatId, isRead: false }, // Only update unread messages that haven't been read by this user
             { $set: { isRead: true } }, { new: true }// Add user to readBy and set isRead to true
         );
+
+        global.io.emit("clearunread-count", {
+            data,
+
+        });
 
 
 

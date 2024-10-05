@@ -30,8 +30,8 @@ import EmojiPicker from "emoji-picker-react";
 let socket;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
-  // const Endpoint = "http://192.168.56.1:8000/";
+  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  const Endpoint = "http://192.168.56.1:8000/";
 
   // const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
@@ -40,7 +40,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const chatdata = useSelector((state) => state.userData.chatData);
   const user = useSelector((state) => state.userData.user);
 
-  console.log(chatdata,"ccchhhaaattt")
+  console.log(chatdata, "ccchhhaaattt");
 
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -126,10 +126,16 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     fetchMessages();
 
+    // const callChatApi=async()=>{
+    //   await dispatch(fetchChat())
+    // }
+
     if (socket) {
       socket.on("receive-message", (data) => {
         // setMessages((prevMessages) => [...prevMessages, data]);/
         fetchMessages();
+        // callChatApi()
+        
       });
 
       socket.emit("joinchat", chatdata?._id);
@@ -158,15 +164,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   console.log(notification, "notification");
 
   const sendMessage = async (event) => {
-    if (file || event.key === "Enter" && newMessage) {
+    if (file || (event.key === "Enter" && newMessage)) {
       socket.emit("stop typing", chatdata._id);
       const formaData = new FormData();
-      console.log(chatdata,"chatdat")
+      console.log(chatdata, "chatdat");
       newMessage && formaData.append("content", newMessage);
       chatdata && formaData.append("chat", chatdata?._id);
       replymessageContent &&
         formaData.append("replyto", replymessageContent?._id);
-        file && formaData.append("file", file);
+      file && formaData.append("file", file);
 
       try {
         const data = messageId
@@ -179,7 +185,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           setNewMessage("");
           setMessageId("");
           setReplyingTo(null);
-          setReplyMessageContent(null)
+          setReplyMessageContent(null);
           setShowEmojiPicker(false);
           setFlag((prevFlag) => !prevFlag);
           // setMessages([...messages,newMessage])
@@ -194,8 +200,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }
   };
-
-
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
@@ -236,16 +240,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setFile(e.target.files[0]); // Set the file when user selects one
   };
 
-  console.log(file,"file")
+  console.log(file, "file");
 
-  useEffect(()=>{
-    
-    if(file){
-      sendMessage()
-      setFile(null)
+  useEffect(() => {
+    if (file) {
+      sendMessage();
+      setFile(null);
     }
-
-  },[file])
+  }, [file]);
 
   return (
     <>
@@ -309,7 +311,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 margin="auto"
               />
             ) : (
-              <div className="messages">
+              <div
+                className="messages"
+                style={{
+                  backgroundImage: user?.backgroundPic
+                    ? `url(${user.backgroundPic})`
+                    : "none",
+                  backgroundColor: user?.backgroundPic
+                    ? "transparent"
+                    : "white",
+                  backgroundSize: "cover", // Ensures the image covers the div
+                  backgroundPosition: "center", // Centers the image
+                }}
+              >
                 <ScrollableChat
                   messages={messages}
                   setNewMessage={setNewMessage}
@@ -356,7 +370,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   position="relative"
                 >
                   <Text fontSize="sm" color="gray.600">
-                    Replying to: {replymessageContent?.content ||replymessageContent?.file  }
+                    Replying to:{" "}
+                    {replymessageContent?.content || replymessageContent?.file}
                   </Text>
                   <IconButton
                     aria-label="Cancel reply"
