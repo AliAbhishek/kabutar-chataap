@@ -16,6 +16,16 @@ const userSchema = mongoose.Schema(
       type: "String",
       default:null
     },
+    isOnline:{
+      type:Number,
+      default:0,
+      description:"0-not online 1-online"
+    },
+    isActive:{
+      type:Number,
+      default:1,
+      description:"1-active 2-deactive"
+    },
     isAdmin: {
       type: Boolean,
       required: true,

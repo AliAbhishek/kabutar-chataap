@@ -10,7 +10,12 @@ const messageSchema = mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     replyto: { type: mongoose.Schema.Types.ObjectId, ref: "Message", default: null },
     file: { type: String, default: null },
-    isRead:{type:Boolean,default:false}
+    isRead:{type:Boolean,default:false},
+    seenBy:{
+      type: Map,
+      of: Number,
+      default: {}
+    }
 
   },
   { timestamps: true }

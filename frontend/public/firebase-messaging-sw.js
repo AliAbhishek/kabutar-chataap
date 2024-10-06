@@ -42,12 +42,20 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', (event) => {
     console.log('Notification click received:', event.notification.data);
 
-    const url = "https://kabutar-chataap.onrender.com/chats"; // Get the URL from the notification data
-
     event.notification.close(); // Close the notification
 
-    // Open the URL in a new window or tab
+    const url = "https://kabutar-chataap.onrender.com/chats"; // Use the URL from the notification data
+
     event.waitUntil(
-        clients.openWindow(url)
+        clients.matchAll({ type: 'window' }).then(clients => {
+            // Check if any client is already open and focus on it
+            const client = clients.find(client => client.url === url && 'focus' in client);
+            if (client) {
+                return client.focus();
+            } else {
+                // Otherwise, open a new window
+                return clients.openWindow(url);
+            }
+        })
     );
 });

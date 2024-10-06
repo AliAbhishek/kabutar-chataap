@@ -10,6 +10,8 @@ import { notificationService } from "./Services/notificationService.js"
 import { authenticateSocket } from "./middlewares/UserAuthenticate.js"
 import User from "./Models/userModel.js"
 import Chat from "./Models/chatModel.js"
+import Message from "./Models/messagesModel.js"
+import QRCode from "qrcode"
 
 dotenv.config()
 
@@ -70,6 +72,20 @@ let port = process.env.PORT
 
 //==================================================================================
 
+// =================================qr code======================================
+
+app.get('/generate-qrcode', async (req, res) => {
+    const url = "https://kabutar-chataap.onrender.com"; // Replace with your desired URL
+  
+    try {
+      const qrCodeImageUrl = await QRCode.toDataURL(url);
+      res.send(`<img src="${qrCodeImageUrl}" alt="QR Code" />`);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error generating QR Code');
+    }
+  });
+
 
 
 const server = app.listen(port, async () => {
@@ -84,10 +100,10 @@ const io = new Server(server, {
         origin: "*", // Allow both production and local development
         methods: ["POST", "GET", "PUT", "DELETE"],
         credentials: true
-        
+
     }
 });
-global.io=io
+global.io = io
 
 
 io.use(authenticateSocket);
@@ -108,7 +124,7 @@ io.on("connection", (socket) => {
 
     socket.on("send-message", async ({ message, room }) => {
 
-    console.log(room,"room")
+        console.log(room, "room")
 
         socket.to(room).emit("receive-message", message)
 
@@ -126,13 +142,13 @@ io.on("connection", (socket) => {
                 const otherUser = chatData?.users.find(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
-                console.log(otherUser,"other")
+                console.log(otherUser, "other")
 
                 if (otherUser) {
                     // Fetch the user data from the User model
                     const otherUserData = await User.findById(socket.request?.user?.userId);
                     // console.log('Found other user:', otherUserData);
-                    console.log(otherUserData?.name,"otherUserData?.name")
+                    console.log(otherUserData?.name, "otherUserData?.name")
                     // You can now use `otherUserData` for further operations
 
                     await notificationService.sendNotification(`New Message from ${otherUserData?.name}`, message, otherUser);
@@ -169,6 +185,13 @@ io.on("connection", (socket) => {
 
         socket.to(chat).emit("stop typing");
     })
+
+    socket.on("disconnect", async() => {
+        console.log(`User disconnected: ${socket.id}`);
+        console.log(socket.request.user, "User details on disconnect");
+       await User.findByIdAndUpdate(socket.request.user.userId,{$set:{isOnline:0}},{new:true})
+
+    });
 
     // socket.on("typing", (room) => socket.to(room).emit("typing"));
     // socket.on("stop typing", (room) => socket.to(room).emit("stop typing"));

@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Flex,
   FormControl,
@@ -24,14 +25,21 @@ import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
 import typingAnimation from "../Animation/typing.json";
 import { chatNameStuff, chatWithUser } from "../redux/Slice/userSlice";
-import { FaPaperclip, FaPaperPlane, FaSmile, FaTimes } from "react-icons/fa";
+import {
+  FaCircle,
+  FaPaperclip,
+  FaPaperPlane,
+  FaSmile,
+  FaTimes,
+} from "react-icons/fa";
 import EmojiPicker from "emoji-picker-react";
+import QRCodeDisplay from "./QRcodeDisplay";
 
 let socket;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
-  const Endpoint = "http://192.168.56.1:8000/";
+  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  // const Endpoint = "http://192.168.56.1:8000/";
 
   // const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
@@ -135,7 +143,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         // setMessages((prevMessages) => [...prevMessages, data]);/
         fetchMessages();
         // callChatApi()
-        
       });
 
       socket.emit("joinchat", chatdata?._id);
@@ -188,6 +195,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           setReplyMessageContent(null);
           setShowEmojiPicker(false);
           setFlag((prevFlag) => !prevFlag);
+
           // setMessages([...messages,newMessage])
 
           socket.emit("send-message", {
@@ -249,6 +257,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   }, [file]);
 
+  const otherUser = chatdata?.users?.find((x) => x?._id !== user?._id);
+
   return (
     <>
       {chatWithUserData ? (
@@ -274,14 +284,35 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             />
             {!chatdata?.isGroupChat ? (
               <>
-                {/* Find the user that is not the logged-in user and display their name */}
-                {chatdata?.users
-                  ?.find((x) => x?._id !== user?._id)
-                  ?.name?.toUpperCase()}
-                {/* Show ProfileModal when it's not a group chat */}
-                <ProfileModal
-                  user={chatdata?.users?.find((x) => x?._id !== user?._id)}
-                />
+                <div style={{ display: "flex" }}>
+                  <div>
+                    {chatdata?.users
+                      ?.find((x) => x?._id !== user?._id)
+                      ?.name?.toUpperCase()}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <div
+                      style={{
+                        width: "8px", // Adjust the size of the dot
+                        height: "8px", // Adjust the size of the dot
+                        borderRadius: "50%",
+                        backgroundColor:
+                          otherUser?.isOnline === 1 ? "green" : "red",
+                        marginLeft: "20px", // Space between the dot and name
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{display:"flex",gap:"10px"}}>
+                  <QRCodeDisplay />
+
+                  {/* Show ProfileModal when it's not a group chat */}
+                  <ProfileModal
+                    user={chatdata?.users?.find((x) => x?._id !== user?._id)}
+                  />
+                </div>
               </>
             ) : (
               /* Display the group chat name */
@@ -328,11 +359,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   messages={messages}
                   setNewMessage={setNewMessage}
                   setMessageId={setMessageId}
-                  // setFlag={setFlag}
-                  // flag={flag}
+                  // fetchMessages={fetchMessages}
+                  setFlag={setFlag}
+                  flag={flag}
                   fetchAgain={fetchAgain}
                   setFetchAgain={setFetchAgain}
                   handleReplyto={handleReplyto}
+                  chatData={chatdata}
                 />
                 {/* Messages content will go here */}
               </div>

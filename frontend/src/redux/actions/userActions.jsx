@@ -170,6 +170,18 @@ export const editProfile = createAsyncThunk(
   }
 );
 
+export const QRcode = createAsyncThunk(
+  "QRcode",
+  async (details) => {
+    try {
+      let { data } = await userApi.get(`generate-qrcode`);
+      return data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
+);
+
 
 
 

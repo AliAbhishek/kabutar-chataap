@@ -35,6 +35,8 @@ import UserListItem from "./UserListItem";
 import { chatNameStuff, chatWithUser, logout } from "../redux/Slice/userSlice";
 import { persistor } from "../redux/Store";
 import { motion } from "framer-motion";
+import QRCodeDisplay from "./QRcodeDisplay";
+// import QRCode from "react-qr-code";
 // import ProfileModal from "./ProfileModal";
 // import NotificationBadge from "react-notification-badge";
 // import { Effect } from "react-notification-badge";
@@ -179,11 +181,8 @@ function SideDrawer() {
         <div>
           <Menu>
             <MenuButton p={1}>
-              {/* <NotificationBadge
-                // count={notification.length}
-                // effect={Effect.SCALE}
-              /> */}
-              {/* <BellIcon fontSize="2xl" m={1} /> */}
+            {/* <QRCode/> */}
+          {/* <QRCodeDisplay/> */}
             </MenuButton>
             <MenuList pl={2}>
               {/* {!notification.length && "No New Messages"} */}
@@ -202,6 +201,8 @@ function SideDrawer() {
               ))} */}
             </MenuList>
           </Menu>
+
+          
           <Menu>
             <MenuButton as={Button} bg="white" rightIcon={<ChevronDownIcon />}>
               <Avatar

@@ -23,14 +23,21 @@ import {
   Tooltip,
   useDisclosure,
 } from "@chakra-ui/react";
-import { FaEllipsisV, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useRef, useState } from "react";
+import {
+  FaCheck,
+  FaCheckDouble,
+  FaEllipsisV,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
 import {
   deleteMessage,
   editMessage,
   getMessages,
 } from "../redux/actions/userActions";
 import UserListItem from "./UserListItem";
+import { io } from "socket.io-client";
 // import {
 //   isLastMessage,
 //   isSameSender,
@@ -78,16 +85,21 @@ const isSameSenderMargin = (messages, m, i, userId) => {
 const isSameUser = (messages, m, i) => {
   return i > 0 && messages[i - 1].sender?._id === m.sender?._id;
 };
+let socket;
+const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+// const Endpoint = "http://192.168.56.1:8000/";
 
 const ScrollableChat = ({
   messages,
   setNewMessage,
-  // setFlag,
-  // flag,
+  setFlag,
+  flag,
+  // fetchMessages,
   fetchAgain,
   setFetchAgain,
   setMessageId,
   handleReplyto,
+  chatUserId,
 }) => {
   const chatdata = useSelector((state) => state.userData.chatData);
   const dispatch = useDispatch();
@@ -113,11 +125,34 @@ const ScrollableChat = ({
     }
   };
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+
+    socket = io(Endpoint, {
+      extraHeaders: {
+        Authorization: token,
+      },
+    });
+
+    if (socket) {
+      socket.on("seenUnseen", async (data) => {
+        console.log(data, "ddaaafffaa");
+        // fetchMessages()
+        // setFlag(!flag)
+        // await dispatch(getMessages(chatdata?._id));
+      });
+    }
+  }, [Endpoint]);
+
+  const otherUser = chatdata?.users?.find((x) => x?._id !== user?._id);
+  console.log(otherUser?.isOnline, "other");
+
   return (
     <>
       <ScrollableFeed className="custom-scroll">
         {messages &&
           messages.map((m, i) => {
+            console.log(m, "mmmm");
             return (
               <Flex
                 key={m._id}
@@ -257,7 +292,7 @@ const ScrollableChat = ({
                           position="absolute"
                           right="-22px" // Adjust if needed
                           top="6px" // Adjust if needed
-                          zIndex="tooltip" // Ensure it is above other elements
+                          // zIndex="tooltip" // Ensure it is above other elements
                         />
                         <MenuList>
                           {m?.chat?.isGroupChat && (
@@ -303,9 +338,10 @@ const ScrollableChat = ({
                             </>
                           )}
                         </MenuList>
-                        {m?.sender?._id === user?._id &&
-                        m?.chat?.isGroupChat ? (
-                          m?.readBy?.length == m?.chat?.users?.length - 1 ? (
+
+                        {m?.sender?._id == user?._id &&
+                          (m?.chat?.isGroupChat &&
+                          m?.chat?.users?.length - 1 === m?.readBy?.length ? (
                             <Box
                               position="absolute"
                               right="-5px"
@@ -314,67 +350,66 @@ const ScrollableChat = ({
                               alignItems="center"
                             >
                               <Box marginRight="2px">
-                                <FaEye size={10} color="green" />{" "}
-                                {/* Open eye icon */}
+                                <FaCheckDouble size={10} color="green" />{" "}
+                                {/* Seen and user is online */}
                               </Box>
                             </Box>
                           ) : (
-                            <Box
-                              position="absolute"
-                              right="-5px"
-                              top="35px" // Adjust to position the ticks below the menu button
-                              display="flex"
-                              alignItems="center"
-                            >
-                              <Box marginRight="2px">
-                                <FaEyeSlash size={10} color="red" />{" "}
-                                {/* Closed eye icon */}
-                              </Box>
-                            </Box>
-                          )
-                        ) : (
-                          m?.sender?._id === user?._id && (
                             <span>
-                              {" "}
-                              {m.readBy.length > 0 &&
-                              m?.readBy?.map((x) =>
-                                console.log(
-                                  x?._id ==
-                                    chatdata?.users?.find(
-                                      (x) => x?._id == user?._id
-                                    )?._id,
-                                  "aabaabababa"
+                              {
+                                // Check if the other user is online
+                                otherUser?.isOnline == 1 ? (
+                                  m?.chat?.users?.some(
+                                    (chatUserId) =>
+                                      chatUserId !== user?._id &&
+                                      m?.seenBy[chatUserId] == 1
+                                  ) ? (
+                                    <Box
+                                      position="absolute"
+                                      right="-5px"
+                                      top="35px" // Adjust to position the ticks below the menu button
+                                      display="flex"
+                                      alignItems="center"
+                                    >
+                                      <Box marginRight="2px">
+                                        <FaCheckDouble
+                                          size={10}
+                                          color="green"
+                                        />{" "}
+                                        {/* Seen and user is online */}
+                                      </Box>
+                                    </Box>
+                                  ) : (
+                                    <Box
+                                      position="absolute"
+                                      right="-5px"
+                                      top="35px" // Adjust to position the ticks below the menu button
+                                      display="flex"
+                                      alignItems="center"
+                                    >
+                                      <Box marginRight="2px">
+                                        <FaCheckDouble size={10} color="gray" />{" "}
+                                        {/* Message sent, but not seen */}
+                                      </Box>
+                                    </Box>
+                                  )
+                                ) : (
+                                  <Box
+                                    position="absolute"
+                                    right="-5px"
+                                    top="35px" // Adjust to position the ticks below the menu button
+                                    display="flex"
+                                    alignItems="center"
+                                  >
+                                    <Box marginRight="2px">
+                                      <FaCheck size={10} color="gray" />{" "}
+                                      {/* Seen but user is offline */}
+                                    </Box>
+                                  </Box>
                                 )
-                              ) ? (
-                                <Box
-                                  position="absolute"
-                                  right="-5px"
-                                  top="35px" // Adjust to position the ticks below the menu button
-                                  display="flex"
-                                  alignItems="center"
-                                >
-                                  <Box marginRight="2px">
-                                    <FaEye size={10} color="green" />{" "}
-                                    {/* Open eye icon */}
-                                  </Box>
-                                </Box>
-                              ) : (
-                                <Box
-                                  position="absolute"
-                                  right="-5px"
-                                  top="35px" // Adjust to position the ticks below the menu button
-                                  display="flex"
-                                  alignItems="center"
-                                >
-                                  <Box marginRight="2px">
-                                    <FaEyeSlash size={10} color="red" />{" "}
-                                    {/* Closed eye icon */}
-                                  </Box>
-                                </Box>
-                              )}
+                              }
                             </span>
-                          )
-                        )}
+                          ))}
                       </Menu>
                     )}
                   </Box>

@@ -23,8 +23,8 @@ let socket;
 const token = sessionStorage.getItem("token");
 
 const MyChats = ({ fetchAgain }) => {
-  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
-  const Endpoint = "http://192.168.56.1:8000/";
+  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  // const Endpoint = "http://192.168.56.1:8000/";
   const dispatch = useDispatch();
   const chatWithUserData = useSelector((state) => state.userData.chatWithuser);
   const user = useSelector((state) => state.userData.user);

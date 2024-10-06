@@ -2,6 +2,7 @@
 
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
+import User from "../Models/userModel.js"
 dotenv.config()
 
 const auth = (req, res, next) => {
@@ -36,16 +37,19 @@ const auth = (req, res, next) => {
 
 export default auth
 
-export const authenticateSocket = (socket, next) => {
+export const authenticateSocket = async(socket, next) => {
     // console.log(socket.request.headers,"==================")
     const token = socket.request.headers.authorization
     if (!token) {
         return next(new Error('Authentication error'));
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, async(err, user) => {
         if (err) {
             return next(new Error('Authentication error'));
         }
+  
+        let data=await User.findByIdAndUpdate(user?.userId,{$set:{isOnline:1}},{new:true})
+        
         socket.request.user = user; // Attach user to socket request
         next();
     });
