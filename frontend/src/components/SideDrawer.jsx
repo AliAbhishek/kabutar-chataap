@@ -95,7 +95,7 @@ function SideDrawer() {
 
   const accessChat = async (userId) => {
     // debugger
-    
+
     try {
       setLoadingChat(true);
 
@@ -110,7 +110,7 @@ function SideDrawer() {
       setSelectedChat(chattingUser);
 
       dispatch(chatWithUser(userId));
-      dispatch(chatNameStuff(data?.payload?.data))
+      dispatch(chatNameStuff(data?.payload?.data));
       setLoadingChat(false);
       onClose();
     } catch (error) {
@@ -180,10 +180,15 @@ function SideDrawer() {
 
         <div>
           <Menu>
-            <MenuButton p={1}>
-            {/* <QRCode/> */}
-          {/* <QRCodeDisplay/> */}
-            </MenuButton>
+            {/* <MenuButton p={1}> */}
+              {/* <QRCode/> */}
+              {/* <Button
+                onClick={() => navigate("/generateImage")}
+                colorScheme="purple"
+              >
+                Generate AI Image
+              </Button> */}
+            {/* </MenuButton> */}
             <MenuList pl={2}>
               {/* {!notification.length && "No New Messages"} */}
               {/* {notification.map((notif) => (
@@ -202,7 +207,6 @@ function SideDrawer() {
             </MenuList>
           </Menu>
 
-          
           <Menu>
             <MenuButton as={Button} bg="white" rightIcon={<ChevronDownIcon />}>
               <Avatar

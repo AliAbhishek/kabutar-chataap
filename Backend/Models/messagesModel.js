@@ -15,6 +15,10 @@ const messageSchema = mongoose.Schema(
       type: Map,
       of: Number,
       default: {}
+    },
+    reaction:{
+     type:String,
+     default:null
     }
 
   },

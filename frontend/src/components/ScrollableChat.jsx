@@ -8,6 +8,7 @@ import {
   Button,
   Flex,
   IconButton,
+  Image,
   Menu,
   MenuButton,
   MenuItem,
@@ -22,6 +23,7 @@ import {
   Text,
   Tooltip,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import {
   FaCheck,
@@ -29,6 +31,7 @@ import {
   FaEllipsisV,
   FaEye,
   FaEyeSlash,
+  FaSmile,
 } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -38,6 +41,8 @@ import {
 } from "../redux/actions/userActions";
 import UserListItem from "./UserListItem";
 import { io } from "socket.io-client";
+import InfiniteScroll from "react-infinite-scroll-component";
+import EmojiPicker from "emoji-picker-react";
 // import {
 //   isLastMessage,
 //   isSameSender,
@@ -85,8 +90,8 @@ const isSameSenderMargin = (messages, m, i, userId) => {
 const isSameUser = (messages, m, i) => {
   return i > 0 && messages[i - 1].sender?._id === m.sender?._id;
 };
-let socket;
-const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+// let socket;
+// const Endpoint = "https://kabutar-chataap-backend.onrender.com";
 // const Endpoint = "http://192.168.56.1:8000/";
 
 const ScrollableChat = ({
@@ -94,6 +99,7 @@ const ScrollableChat = ({
   setNewMessage,
   setFlag,
   flag,
+  setMessages,
   // fetchMessages,
   fetchAgain,
   setFetchAgain,
@@ -105,15 +111,21 @@ const ScrollableChat = ({
   const dispatch = useDispatch();
   const user = useSelector((state) => state.userData.user);
   console.log(messages, "messages");
+  const socket = useSelector((state) => state.socketData.socket);
+  console.log(socket, "sockrrtrtrtrtrtrtscrollable");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isopen, setIsOpen] = useState(false);
+  const toast = useToast()
 
   const onOpenModal = () => setIsOpen(true);
   const onCloseModal = () => setIsOpen(false);
   const [currentMessageId, setCurrentMessageId] = useState(null);
   const [highlightedMessage, setHighlightedMessage] = useState(null);
   const [usersWhoReadMessages, setusersWhoReadMessages] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [reaction, setreaction] = useState(null);
+  const [messageId, setmessageId] = useState(null);
 
   const messageRefs = useRef([]);
 
@@ -128,11 +140,11 @@ const ScrollableChat = ({
   useEffect(() => {
     const token = sessionStorage.getItem("token");
 
-    socket = io(Endpoint, {
-      extraHeaders: {
-        Authorization: token,
-      },
-    });
+    // socket = io(Endpoint, {
+    //   extraHeaders: {
+    //     Authorization: token,
+    //   },
+    // });
 
     if (socket) {
       socket.on("seenUnseen", async (data) => {
@@ -142,17 +154,60 @@ const ScrollableChat = ({
         // await dispatch(getMessages(chatdata?._id));
       });
     }
-  }, [Endpoint]);
+  }, [socket]);
 
   const otherUser = chatdata?.users?.find((x) => x?._id !== user?._id);
   console.log(otherUser?.isOnline, "other");
+
+  const addEmoji = async (e) => {
+    console.log(e, "emoji");
+
+    let emoji = e.emoji;
+
+    setreaction(emoji); // Add emoji to the input field
+    let data = await dispatch(
+      editMessage({ messageId: messageId, reaction: emoji })
+    );
+    if (data?.payload?.success) {
+      // await dispatch(
+      //   getMessages({ chatId: chatdata?._id, offset: 0, page: 1 })
+      // );
+      setFlag(!flag);
+    }
+
+    setShowEmojiPicker(false);
+  };
+
+  console.log(messageId, "messageId");
+
+  console.log(reaction, "reaction");
+
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard!",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+        position: "top",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+        position: "top",
+      });
+    }
+  };
 
   return (
     <>
       <ScrollableFeed className="custom-scroll">
         {messages &&
           messages.map((m, i) => {
-            console.log(m, "mmmm");
             return (
               <Flex
                 key={m._id}
@@ -258,6 +313,7 @@ const ScrollableChat = ({
                             />
                           ))}
                       </Text>
+                      {/* <Text>emoi</Text> */}
                     </Tooltip>
 
                     <Text
@@ -273,6 +329,24 @@ const ScrollableChat = ({
                       })}
                       {m?.isEdited && " (Edited)"}
                     </Text>
+                    {m?.reaction && (
+                      <Box
+                        position="absolute"
+                        bottom="-20px" // Adjust this value to move the emoji closer or further from the border
+                        left="100%" // Center the emoji horizontally
+                        transform="translateX(-50%)" // Center alignment adjustment
+                        // bg="white" // White background for the emoji
+                        // borderRadius="50%" // Optional: Make it round
+                        padding="5px" // Optional: Padding around the emoji
+                        // boxShadow="0 2px 5px rgba(0, 0, 0, 0.3)" // Optional: Add a shadow for depth
+                      >
+                        <Text>
+                          {" "}
+                          {/* Change emoji color as needed */}
+                          {m.reaction} {/* This can be an emoji or text */}
+                        </Text>
+                      </Box>
+                    )}
                     {!m?.isDeleted && (
                       <Menu
                         isOpen={currentMessageId === m?._id && isOpen}
@@ -295,6 +369,7 @@ const ScrollableChat = ({
                           // zIndex="tooltip" // Ensure it is above other elements
                         />
                         <MenuList>
+                          <MenuItem onClick={()=>handleCopy(m?.content)}>Copy</MenuItem>
                           {m?.chat?.isGroupChat && (
                             <MenuItem
                               onClick={() => {
@@ -414,10 +489,31 @@ const ScrollableChat = ({
                     )}
                   </Box>
                 </Flex>
+                {m.sender?._id !== user?._id && (
+                  // <Box>sd</Box>
+                  <IconButton
+                    aria-label="emoji-picker"
+                    icon={<FaSmile />}
+                    onClick={() => {
+                      setmessageId(m?._id);
+                      setShowEmojiPicker(!showEmojiPicker);
+                      console.log(m, "mmmmmmmmmmmmmmmmmm");
+                    }}
+                    // onClick={()=>console.log("emmmm")}
+                    variant="ghost"
+                    size="lg"
+                  />
+                )}
               </Flex>
             );
           })}
       </ScrollableFeed>
+
+      {showEmojiPicker && (
+        <Box position="absolute" bottom="50px" zIndex="1000">
+          <EmojiPicker onEmojiClick={addEmoji} />
+        </Box>
+      )}
 
       <Modal isOpen={isopen} onClose={onCloseModal}>
         <ModalOverlay />

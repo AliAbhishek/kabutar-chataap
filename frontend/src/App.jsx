@@ -11,6 +11,7 @@ import { setFCMtoken } from "./redux/Slice/userSlice";
 import { useToast } from "@chakra-ui/react";
 import EditProfile from "./Pages/EditProfile";
 import ProtectedRoutes from "./components/ProtectedRoutes";
+import GenerateImage from "./Pages/GenerateImage";
 
 function App() {
   const location = useLocation();
@@ -100,6 +101,7 @@ function App() {
         <Route element={<ProtectedRoutes />}>
           <Route path="/chats" element={<ChatPage />} />
           <Route path="/editProfile" element={<EditProfile />} />
+          <Route path="/generateImage" element={<GenerateImage />} />
         </Route>
       </Routes>
     </div>

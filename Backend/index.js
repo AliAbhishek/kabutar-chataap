@@ -12,6 +12,7 @@ import User from "./Models/userModel.js"
 import Chat from "./Models/chatModel.js"
 import Message from "./Models/messagesModel.js"
 import QRCode from "qrcode"
+import generateImage from "./Routes/generateImage.js"
 
 dotenv.config()
 
@@ -45,6 +46,7 @@ app.post("/user1/login", (req, res) => {
 app.use("/user", userRouter)
 app.use("/chat", chatRouter)
 app.use("/message", messageRouter)
+app.use("/generateImage", generateImage)
 app.use(express.static("public"))
 
 // =======================================deployment===================================
@@ -76,15 +78,15 @@ let port = process.env.PORT
 
 app.get('/generate-qrcode', async (req, res) => {
     const url = "https://kabutar-chataap.onrender.com"; // Replace with your desired URL
-  
+
     try {
-      const qrCodeImageUrl = await QRCode.toDataURL(url);
-      res.send(`<img src="${qrCodeImageUrl}" alt="QR Code" />`);
+        const qrCodeImageUrl = await QRCode.toDataURL(url);
+        res.send(`<img src="${qrCodeImageUrl}" alt="QR Code" />`);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error generating QR Code');
+        console.error(error);
+        res.status(500).send('Error generating QR Code');
     }
-  });
+});
 
 
 
@@ -127,6 +129,19 @@ io.on("connection", (socket) => {
         console.log(room, "room")
 
         socket.to(room).emit("receive-message", message)
+        try {
+            socket.to(room).emit("clearunread-count", {
+                message: "unread count socket"
+    
+            });
+            console.log("clear unread count ")
+            
+        } catch (error) {
+            console.log(error)
+        }
+       
+        
+        
 
         let chatData = await Chat.findById(room)
         console.log(chatData, "chatData")
@@ -185,11 +200,12 @@ io.on("connection", (socket) => {
 
         socket.to(chat).emit("stop typing");
     })
+    
 
-    socket.on("disconnect", async() => {
+    socket.on("disconnect", async () => {
         console.log(`User disconnected: ${socket.id}`);
         console.log(socket.request.user, "User details on disconnect");
-       await User.findByIdAndUpdate(socket.request.user.userId,{$set:{isOnline:0}},{new:true})
+        await User.findByIdAndUpdate(socket.request.user.userId, { $set: { isOnline: 0 } }, { new: true })
 
     });
 

@@ -9,7 +9,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchChat } from "../redux/actions/userActions";
 import { chatNameStuff, chatWithUser } from "../redux/Slice/userSlice";
@@ -19,15 +19,17 @@ import animationData from "../Animation/chatanimationdata.json";
 import Lottie from "react-lottie";
 import { io } from "socket.io-client";
 
-let socket;
-const token = sessionStorage.getItem("token");
+// let socket;
+// const token = sessionStorage.getItem("token");
 
 const MyChats = ({ fetchAgain }) => {
-  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
   // const Endpoint = "http://192.168.56.1:8000/";
   const dispatch = useDispatch();
   const chatWithUserData = useSelector((state) => state.userData.chatWithuser);
   const user = useSelector((state) => state.userData.user);
+  const socket = useSelector((state) => state.socketData.socket);
+  console.log(socket,"sockrrtrtrtrtrtrtmychat")
 
   const chatdata = useSelector((state) => state.userData.chatData);
 
@@ -42,6 +44,7 @@ const MyChats = ({ fetchAgain }) => {
 
   const [chats, setChats] = useState(null);
   const [flag, setFlag] = useState(false);
+  // const socket = useRef();
 
   const toast = useToast();
 
@@ -58,30 +61,7 @@ const MyChats = ({ fetchAgain }) => {
     fetchChats();
   }, [fetchAgain, flag, chatdata, chatWithUser]);
 
-  useEffect(() => {
-   
-
-    socket = io(Endpoint, {
-      extraHeaders: {
-        Authorization: token,
-      },
-    });
-
-    if (socket) {
-      socket.on("checkunread-count", (data) => {
-        console.log(data,"dddddddddddddddddddddddddddddddddddddddddddddddd")
-        // setMessages((prevMessages) => [...prevMessages, data]);/
-        // fetchMessages();
-        // callChatApi()
-        fetchChats();
-        
-      });
-
-    
-    }
-
-
-  }, [Endpoint]);
+  
 
   const getChatId = (chat) => {
     if (chat?.isGroupChat) {
@@ -143,7 +123,7 @@ const MyChats = ({ fetchAgain }) => {
                   chat?.unreadMessageCounts[user?._id],
                   "==========================="
                 );
-                
+
                 return (
                   <Box
                     key={chat._id}
@@ -152,14 +132,16 @@ const MyChats = ({ fetchAgain }) => {
                       // Dispatch action on click
                       dispatch(chatNameStuff(chat));
                       dispatch(chatWithUser(getChatId(chat)));
-                      socket = io(Endpoint, {
-                        extraHeaders: {
-                          Authorization: token,
-                        },
-                      });
+                      // socket = io(Endpoint, {
+                      //   extraHeaders: {
+                      //     Authorization: token,
+                      //   },
+                      // });
                   
                       if (socket) {
+                      
                         socket.on("clearunread-count", (data) => {
+                          
                           console.log(data,"clearunread-count")
                           // setMessages((prevMessages) => [...prevMessages, data]);/
                           // fetchMessages();

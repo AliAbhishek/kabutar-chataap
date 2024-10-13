@@ -57,7 +57,7 @@ export const messageService = {
             {
                 $set: {
                     seenBy: updateToSee,
-                    
+
                 },
             },
             { new: true }
@@ -66,10 +66,10 @@ export const messageService = {
 
 
         // Emit the new message to the chat room via socket
-        global.io.emit("checkunread-count", {
-            datawithcount,
+        // global.io.emit("checkunread-count", {
+        //     datawithcount,
 
-        });
+        // });
 
 
 
@@ -78,8 +78,13 @@ export const messageService = {
 
     },
     allMessages: async (req, res) => {
-        const { chatId } = req.params;
+        console.log(req.query, "params")
+        const { chatId, page = 1 } = req.query;
+        console.log(chatId, "chatId")
+        const itemOnOnePage = 30
         const userId = req.user.userId
+         // Calculate how many items to skip based on the page number
+    const skipMessages = (page - 1) * itemOnOnePage;
 
         // Find the messages and populate them before sending the response
         let data = await Message.find({ chat: chatId })
@@ -105,6 +110,8 @@ export const messageService = {
         await Chat.findByIdAndUpdate(chatId, {
             $set: { [`unreadMessageCounts.${userId}`]: 0 }
         }, { new: true });
+
+
 
         const bulkOps = data
             .map((message) => {
@@ -154,7 +161,9 @@ export const messageService = {
 
         });
 
-
+        const totalCount = await Message.countDocuments({ chat: chatId });
+        let totalPages = Math.ceil(totalCount / itemOnOnePage)
+        console.log(totalPages, "page")
 
         data = await Message.find({ chat: chatId }).populate({ path: "sender", select: "-password" })
             .populate("chat").populate("replyto").populate({ path: "readBy", select: "-password" })
@@ -168,13 +177,23 @@ export const messageService = {
 
     },
     editMessage: async (req, res) => {
-        const { messageId, content } = req.body
+        const { messageId, content,reaction } = req.body
         if (!messageId) {
             return errorRes(res, 400, "Please give message Id")
 
         }
+        let updatedMessage
 
-        let updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content, isEdited: true } }, { new: true })
+        if(reaction){
+            updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { reaction } }, { new: true })
+
+        }else{
+             updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content, isEdited: true } }, { new: true })
+
+        }
+
+        
+        
         return successRes(res, 200, "message updated successfully", updatedMessage)
 
     },

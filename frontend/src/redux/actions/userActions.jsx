@@ -1,4 +1,4 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { clearAllListeners, createAsyncThunk } from "@reduxjs/toolkit";
 import userApi from "../../service/userApi";
 
 export const registration = createAsyncThunk(
@@ -125,8 +125,10 @@ export const sendMessages = createAsyncThunk(
 export const getMessages = createAsyncThunk(
   "getMessages",
   async (details) => {
+    console.log(details,"details");
+    
     try {
-      let { data } = await userApi.get(`message/${details}`);
+      let { data } = await userApi.get(`message?chatId=${details?.chatId}&page=${details?.page}`);
       return data;
     } catch (error) {
       return error.response.data;

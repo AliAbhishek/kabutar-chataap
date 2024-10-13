@@ -8,7 +8,7 @@ const messageRouter = express.Router()
 messageRouter.use(auth)
 
 messageRouter.post("/",upload.fields([{name:"file",maxCount:1}]),messageController.sendMessage)
-messageRouter.get("/:chatId",messageController.allMessages)
+messageRouter.get("/",messageController.allMessages)
 messageRouter.put("/editMessage",messageController.editMessage)
 messageRouter.put("/deleteMessage",messageController.deleteMessage)
 

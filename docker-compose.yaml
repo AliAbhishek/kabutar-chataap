@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend  # Adjust this path as necessary
+    ports:
+      - "3000:5173"  # Change host port to 3000
+    networks:
+      - kabutar-mern
+    environment:
+      - REACT_APP_ADMIN_BASE_URL=https://kabutar-chataap-backend.onrender.com
+      - REACT_APP_FILE_BASE_URL=https://kabutar-chataap-backend.onrender.com
+      - REACT_APP_SOCKET_ENDPOINT=https://kabutar-chataap-backend.onrender.com
+
+  backend:
+    build:
+      context: ./backend  # Adjust this path as necessary
+    ports:
+      - "8000:8000"  # Change host port to 8000
+    networks:
+      - kabutar-mern
+    
+
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongo_data:/data/db  # Persist MongoDB data
+    networks:
+      - kabutar-mern
+
+networks:
+  kabutar-mern:
+    driver: bridge
+
+volumes:
+  mongo_data:

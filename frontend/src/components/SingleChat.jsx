@@ -35,10 +35,10 @@ import {
 import EmojiPicker from "emoji-picker-react";
 import QRCodeDisplay from "./QRcodeDisplay";
 
-let socket;
+// let socket;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+  // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
   // const Endpoint = "http://192.168.56.1:8000/";
 
   // const [socket, setSocket] = useState(null);
@@ -47,6 +47,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const chatWithUserData = useSelector((state) => state.userData.chatWithuser);
   const chatdata = useSelector((state) => state.userData.chatData);
   const user = useSelector((state) => state.userData.user);
+  const socket = useSelector((state) => state.socketData.socket);
+  console.log(socket,"sockrrtrtrtrtrtrt")
 
   console.log(chatdata, "ccchhhaaattt");
 
@@ -85,34 +87,40 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     // Initialize the socket connection
     // socket = io(Endpoint);
 
-    const token = sessionStorage.getItem("token");
+    // const token = sessionStorage.getItem("token");
 
-    socket = io(Endpoint, {
-      extraHeaders: {
-        Authorization: token,
-      },
-    });
+    // socket = io(Endpoint, {
+    //   extraHeaders: {
+    //     Authorization: token,
+    //   },
+    // });
+    // console.log(socket,"socketid")
 
     // Emit setup event with the user
-    socket.emit("setup", user);
 
-    // Handle socket connection events
-    socket.on("connect", () => setSocketConnected(true));
-    socket.on("disconnect", () => setSocketConnected(false));
+    if(socket){
+      socket.emit("setup", user);
 
-    // Handle typing events
-    socket.on("typing", () => setIsTyping(true));
-    socket.on("stop typing", () => setIsTyping(false));
+      // Handle socket connection events
+      socket.on("connect", () => setSocketConnected(true));
+      socket.on("disconnect", () => setSocketConnected(false));
+  
+      // Handle typing events
+      socket.on("typing", () => setIsTyping(true));
+      socket.on("stop typing", () => setIsTyping(false));
+  
+      // Clean up socket listeners on component unmount
+      // return () => {
+      //   socket.off("connect");
+      //   socket.off("disconnect");
+      //   socket.off("typing");
+      //   socket.off("stop typing");
+      //   socket.disconnect(); // Properly close the connection
+      // };
 
-    // Clean up socket listeners on component unmount
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("typing");
-      socket.off("stop typing");
-      socket.disconnect(); // Properly close the connection
-    };
-  }, [Endpoint, user]);
+    }
+   
+  }, [ user]);
   console.log(socketConnected, "socket");
 
   useEffect(() => {
@@ -122,7 +130,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
       // setLoading(true);
       try {
-        const data = await dispatch(getMessages(chatdata?._id));
+        const data = await dispatch(getMessages({chatId:chatdata?._id,offset:0,page:1}));
         // console.log(data?.payload?.data, "deleted");
         setMessages(data?.payload?.data);
       } catch (error) {
@@ -317,8 +325,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             ) : (
               /* Display the group chat name */
               <>
-                {chatdata?.chatName?.toUpperCase()}
+              {chatdata?.chatName?.toUpperCase()}
+              <div style={{display:"flex",gap:"10px"}}>
+              <QRCodeDisplay />
+                
                 <UpdateGroupChatModal />
+                </div>
               </>
             )}
           </Text>
@@ -359,6 +371,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   messages={messages}
                   setNewMessage={setNewMessage}
                   setMessageId={setMessageId}
+                  setMessages={setMessages}
                   // fetchMessages={fetchMessages}
                   setFlag={setFlag}
                   flag={flag}
