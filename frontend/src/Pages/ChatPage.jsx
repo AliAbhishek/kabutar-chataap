@@ -14,8 +14,8 @@ const ChatPage = () => {
   const [fetchAgain, setFetchAgain] = useState(false);
 
   useEffect(() => {
-    const Endpoint = "http://192.168.56.1:8000/";
-    // const Endpoint = "https://kabutar-chataap-backend.onrender.com";
+    // const Endpoint = "http://192.168.56.1:8000/";
+    const Endpoint = "https://kabutar-chataap-backend.onrender.com";
     const token = sessionStorage.getItem("token");
 
     // Create socket instance
