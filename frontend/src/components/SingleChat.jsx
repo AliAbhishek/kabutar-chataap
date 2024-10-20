@@ -38,6 +38,8 @@ import EmojiPicker from "emoji-picker-react";
 import QRCodeDisplay from "./QRcodeDisplay";
 import UserListItem from "./UserListItem";
 import AudioControls from "./AudioControl";
+import FileUpload from "./DragAndDrop";
+import ChatWithDragDrop from "./ChangeWithDragAndDrop";
 
 // let socket;
 
@@ -197,7 +199,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       (event?.key === "Enter" && newMessage)
     ) {
       socket.emit("stop typing", chatdata._id);
-      (file ||  event instanceof Blob ) && setLoading(true)
+      (file || event instanceof Blob) && setLoading(true);
       const formaData = new FormData();
       console.log(chatdata, "chatdat");
       newMessage && formaData.append("content", newMessage);
@@ -224,7 +226,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           setShowEmojiPicker(false);
           setFile(null);
           setFlag((prevFlag) => !prevFlag);
-          setLoading(false)
+          setLoading(false);
 
           // setMessages([...messages,newMessage])
 
@@ -234,7 +236,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           });
         }
       } catch (error) {
-        setLoading(false)
+        setLoading(false);
         console.error("Failed to send the Message", error);
       }
     }
@@ -495,7 +497,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   backgroundPosition: "center", // Centers the image
                 }}
               >
-                <ScrollableChat
+                <ChatWithDragDrop
                   messages={messages}
                   setNewMessage={setNewMessage}
                   setMessageId={setMessageId}
@@ -507,7 +509,25 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   setFetchAgain={setFetchAgain}
                   handleReplyto={handleReplyto}
                   chatData={chatdata}
+                  setFile={setFile}
+                  file={file}
+                 
+                  
                 />
+
+                {/* <ScrollableChat
+                  messages={messages}
+                  setNewMessage={setNewMessage}
+                  setMessageId={setMessageId}
+                  setMessages={setMessages}
+                  // fetchMessages={fetchMessages}
+                  setFlag={setFlag}
+                  flag={flag}
+                  fetchAgain={fetchAgain}
+                  setFetchAgain={setFetchAgain}
+                  handleReplyto={handleReplyto}
+                  chatData={chatdata}
+                /> */}
                 {/* Messages content will go here */}
               </div>
             )}
@@ -613,8 +633,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   stopRecording={stopRecording}
                   isRecording={isRecording}
                 />
-
-                
               </Flex>
 
               {showEmojiPicker && (

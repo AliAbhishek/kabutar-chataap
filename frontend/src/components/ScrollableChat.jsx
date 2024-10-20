@@ -209,6 +209,15 @@ const ScrollableChat = ({
     }
   };
 
+  const handleDownload = (fileUrl) => {
+    const link = document.createElement("a"); // Create an anchor element
+    link.href = fileUrl; // Set the href to the file URL
+    link.download = fileUrl.split("/").pop(); // Set the download attribute with the file name
+    document.body.appendChild(link); // Append the link to the body
+    link.click(); // Simulate a click on the link
+    document.body.removeChild(link); // Remove the link after clicking
+  };
+
   return (
     <>
       <ScrollableFeed className="custom-scroll">
@@ -275,17 +284,110 @@ const ScrollableChat = ({
                     >
                       <Text>
                         Replying to:{" "}
-                        {m?.replyto?.content ||
-                          (m?.replyto?.file && (
-                            <img
-                              style={{
-                                height: "200px",
-                                width: "200px",
-                                objectFit: "cover",
-                              }}
-                              src={m?.replyto?.file}
-                            />
-                          ))}
+                        {m?.replyto?.content || (
+                          <>
+                            {m?.replyto?.file && (
+                              <>
+                                {/* Image Handling */}
+                                {(m?.replyto?.file.endsWith(".jpg") ||
+                                  m?.replyto?.file.endsWith(".jpeg") ||
+                                  m?.replyto?.file.endsWith(".png")) && (
+                                  <div style={{ padding: "20px" }}>
+                                    {/* Use ImageWithOptions for images */}
+                                    <ImageWithOptions
+                                      imageUrl={m?.replyto?.file}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* PDF Handling */}
+                                {m?.replyto?.file.endsWith(".pdf") && (
+                                  <div
+                                    style={{
+                                      position: "relative",
+                                      padding: "20px",
+                                    }}
+                                  >
+                                    {/* PDF Sticker */}
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        top: 10,
+                                        left: -10,
+                                        backgroundColor: "#ff5733", // Bright color for the sticker
+                                        color: "white",
+                                        padding: "5px 10px",
+                                        borderRadius: "5px",
+                                        fontSize: "14px",
+                                        fontWeight: "bold",
+                                        transform: "rotate(-10deg)", // Slight rotation for a playful look
+                                      }}
+                                    >
+                                      PDF
+                                    </div>
+
+                                    <iframe
+                                      src={m?.replyto?.file}
+                                      style={{
+                                        width: "100%",
+                                        height: "400px",
+                                        border: "1px solid black",
+                                      }}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Video Handling */}
+                                {m?.replyto?.file.includes("video") && (
+                                  <audio controls>
+                                    <source
+                                      src={m?.replyto?.file}
+                                      type="audio/mpeg"
+                                    />
+                                    Your browser does not support the audio
+                                    element.
+                                  </audio>
+                                )}
+
+                                {/* Raw File Handling (e.g., folder) */}
+                                {m?.replyto?.file.includes("raw") && (
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      border: "1px solid #ccc", // Border around the folder
+                                      borderRadius: "5px", // Rounded corners
+                                      padding: "10px", // Padding inside the folder
+                                      margin: "10px 0", // Margin above and below the folder
+                                      backgroundColor: "#f9f9f9", // Light background color
+                                      position: "relative", // To allow positioning of inner elements
+                                      transition: "box-shadow 0.3s ease", // Transition for hover effect
+                                      cursor: "pointer", // Change cursor on hover
+                                      boxShadow:
+                                        "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                                    }}
+                                    onClick={() =>
+                                      handleDownload(m?.replyto?.file)
+                                    } // Call the download handler on click
+                                  >
+                                    <div
+                                      style={{
+                                        fontSize: "30px", // Size of the folder icon
+                                        marginRight: "10px", // Space between the icon and audio
+                                      }}
+                                    >
+                                      <span style={{ display: "inline-block" }}>
+                                        📁
+                                      </span>
+                                    </div>
+                                    <span>Download Folder</span>{" "}
+                                    {/* Optional text for clarity */}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </>
+                        )}
                       </Text>
                     </Box>
                   )}
@@ -310,30 +412,95 @@ const ScrollableChat = ({
                         {m?.content ||
                           (m?.file && (
                             <>
-                              {m?.file.includes("image") && (
-                                // <img
-                                //   style={{
-                                //     height: "200px",
-                                //     width: "200px",
-                                //     objectFit: "cover",
-                                //   }}
-                                //   src={m?.file}
-                                //   alt="Media"
-                                // />
+                              {m.file.endsWith(".jpg") ||
+                              m.file.endsWith(".jpeg") ||
+                              m.file.endsWith(".png") ? (
                                 <div style={{ padding: "20px" }}>
-                                  {/* <h1>Image with Context Menu</h1> */}
-                                  <ImageWithOptions imageUrl={m?.file} />
+                                  {/* Use ImageWithOptions for images */}
+                                  <ImageWithOptions imageUrl={m.file} />
                                 </div>
+                              ) : m.file.endsWith(".pdf") ? (
+                                <div
+                                  style={{
+                                    position: "relative",
+                                    padding: "20px",
+                                  }}
+                                >
+                                  {/* PDF Sticker */}
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 10,
+                                      left: -10,
+                                      backgroundColor: "#ff5733", // Bright color for the sticker
+                                      color: "white",
+                                      padding: "5px 10px",
+                                      borderRadius: "5px",
+                                      fontSize: "14px",
+                                      fontWeight: "bold",
+                                      transform: "rotate(-10deg)", // Slight rotation for a playful look
+                                    }}
+                                  >
+                                    PDF
+                                  </div>
 
-                                // <Image
-                                // WithOptions imageUrl={m?.file}/>
-                              )}
+                                  <iframe
+                                    src={m.file}
+                                    style={{
+                                      // width: "100%",
+                                      // height: "400px",
+                                      border: "1px solid black",
+                                    }}
+                                  />
+                                </div>
+                              ) : null}
+
                               {m?.file.includes("video") && (
                                 <audio controls>
                                   <source src={m?.file} type="audio/mpeg" />
                                   Your browser does not support the audio
                                   element.
                                 </audio>
+                              )}
+                              {m?.file.includes("raw") && (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    border: "1px solid #ccc", // Border around the folder
+                                    borderRadius: "5px", // Rounded corners
+                                    padding: "10px", // Padding inside the folder
+                                    margin: "10px 0", // Margin above and below the folder
+                                    backgroundColor: "#f9f9f9", // Light background color
+                                    position: "relative", // To allow positioning of inner elements
+                                    transition: "box-shadow 0.3s ease", // Transition for hover effect
+                                    cursor: "pointer", // Change cursor on hover
+                                    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                                  }}
+                                  onClick={() => handleDownload(m?.file)} // Call the download handler on click
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "30px", // Size of the folder icon
+                                      marginRight: "10px", // Space between the icon and audio
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        display: "inline-block", // Makes sure the icon aligns correctly
+                                      }}
+                                    >
+                                      📁
+                                    </span>{" "}
+                                    {/* You can replace this with an actual folder icon if needed */}
+                                  </div>
+                                  <span>Download Folder</span>{" "}
+                                </div>
+                                // <audio controls>
+                                //   <source src={m?.file} type="audio/mpeg" />
+                                //   Your browser does not support the audio
+                                //   element.
+                                // </audio>
                               )}
                             </>
                           ))}
