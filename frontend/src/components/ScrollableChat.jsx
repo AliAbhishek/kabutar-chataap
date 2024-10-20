@@ -330,7 +330,7 @@ const ScrollableChat = ({
                                       src={m?.replyto?.file}
                                       style={{
                                         width: "100%",
-                                        height: "400px",
+                                        height: "200px",
                                         border: "1px solid black",
                                       }}
                                     />
@@ -461,7 +461,7 @@ const ScrollableChat = ({
                                     src={m.file}
                                     style={{
                                       width: "100%", // Ensure the iframe fits well
-                                      height: "400px", // Specify a height
+                                      height: "200px", // Specify a height
                                       border: "1px solid black",
                                     }}
                                   />
