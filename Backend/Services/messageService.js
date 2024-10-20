@@ -78,9 +78,9 @@ export const messageService = {
 
     },
     allMessages: async (req, res) => {
-        console.log(req.query, "params")
+      
         const { chatId, page = 1 } = req.query;
-        console.log(chatId, "chatId")
+       
         const itemOnOnePage = 30
         const userId = req.user.userId
          // Calculate how many items to skip based on the page number

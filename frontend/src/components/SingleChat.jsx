@@ -7,9 +7,10 @@ import {
   Input,
   Spinner,
   Text,
+  Toast,
   useEditable,
 } from "@chakra-ui/react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import animationData from "../Animation/animationData.json";
 import Lottie from "react-lottie";
@@ -19,6 +20,7 @@ import UpdateGroupChatModal from "./UpdateGroupChatModal";
 import {
   editMessage,
   getMessages,
+  searchUser,
   sendMessages,
 } from "../redux/actions/userActions";
 import ScrollableChat from "./ScrollableChat";
@@ -34,6 +36,8 @@ import {
 } from "react-icons/fa";
 import EmojiPicker from "emoji-picker-react";
 import QRCodeDisplay from "./QRcodeDisplay";
+import UserListItem from "./UserListItem";
+import AudioControls from "./AudioControl";
 
 // let socket;
 
@@ -48,7 +52,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const chatdata = useSelector((state) => state.userData.chatData);
   const user = useSelector((state) => state.userData.user);
   const socket = useSelector((state) => state.socketData.socket);
-  console.log(socket,"sockrrtrtrtrtrtrt")
+  console.log(socket, "sockrrtrtrtrtrtrt");
 
   console.log(chatdata, "ccchhhaaattt");
 
@@ -65,6 +69,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [replymessageContent, setReplyMessageContent] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [file, setFile] = useState(null);
+  const [searchResult, setSearchResult] = useState(null);
+  const [mentionComplete, setMentionComplete] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const mediaRecorderRef = useRef(null); // Use ref to store mediaRecorder instance
+  const audioChunks = useRef([]); // Store audio chunks
 
   const defaultOptions = {
     loop: true,
@@ -98,17 +108,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     // Emit setup event with the user
 
-    if(socket){
+    if (socket) {
       socket.emit("setup", user);
 
       // Handle socket connection events
       socket.on("connect", () => setSocketConnected(true));
       socket.on("disconnect", () => setSocketConnected(false));
-  
+
       // Handle typing events
       socket.on("typing", () => setIsTyping(true));
       socket.on("stop typing", () => setIsTyping(false));
-  
+
       // Clean up socket listeners on component unmount
       // return () => {
       //   socket.off("connect");
@@ -117,10 +127,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       //   socket.off("stop typing");
       //   socket.disconnect(); // Properly close the connection
       // };
-
     }
-   
-  }, [ user]);
+  }, [user]);
   console.log(socketConnected, "socket");
 
   useEffect(() => {
@@ -130,7 +138,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
       // setLoading(true);
       try {
-        const data = await dispatch(getMessages({chatId:chatdata?._id,offset:0,page:1}));
+        const data = await dispatch(
+          getMessages({ chatId: chatdata?._id, offset: 0, page: 1 })
+        );
         // console.log(data?.payload?.data, "deleted");
         setMessages(data?.payload?.data);
       } catch (error) {
@@ -179,15 +189,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   console.log(notification, "notification");
 
   const sendMessage = async (event) => {
-    if (file || (event.key === "Enter" && newMessage)) {
+    console.log(event instanceof Blob, "ever");
+
+    if (
+      event instanceof Blob ||
+      file ||
+      (event?.key === "Enter" && newMessage)
+    ) {
       socket.emit("stop typing", chatdata._id);
+      (file ||  event instanceof Blob ) && setLoading(true)
       const formaData = new FormData();
       console.log(chatdata, "chatdat");
       newMessage && formaData.append("content", newMessage);
       chatdata && formaData.append("chat", chatdata?._id);
       replymessageContent &&
         formaData.append("replyto", replymessageContent?._id);
-      file && formaData.append("file", file);
+      (file || event instanceof Blob) &&
+        formaData.append("file", file || event);
 
       try {
         const data = messageId
@@ -199,10 +217,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         if (data?.payload?.success) {
           setNewMessage("");
           setMessageId("");
+          setMentionComplete(false);
+          setAudioBlob(null);
           setReplyingTo(null);
           setReplyMessageContent(null);
           setShowEmojiPicker(false);
+          setFile(null);
           setFlag((prevFlag) => !prevFlag);
+          setLoading(false)
 
           // setMessages([...messages,newMessage])
 
@@ -212,13 +234,55 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           });
         }
       } catch (error) {
+        setLoading(false)
         console.error("Failed to send the Message", error);
       }
     }
   };
 
+  const handleSearch = async (value) => {
+    try {
+      setLoading(true);
+
+      const data = await dispatch(searchUser(value));
+      console.log(data, "data");
+
+      setLoading(false);
+      setSearchResult(data?.payload?.data);
+    } catch (error) {
+      Toast({
+        title: "Error Occured!",
+        description: "Failed to Load the Search Results",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
+  };
+
   const typingHandler = (e) => {
-    setNewMessage(e.target.value);
+    // Check if '@' is typed to trigger mention search
+    const inputValue = e.target.value;
+    console.log(inputValue, "inputvsl");
+    setNewMessage(inputValue);
+    setMentionComplete(false);
+
+    // Check if '@' is typed and followed by a username part
+    const atIndex = inputValue.lastIndexOf("@");
+    if (atIndex !== -1 && !mentionComplete) {
+      // Get the text after the last '@' symbol to use as a search query
+      const mentionQuery = inputValue.slice(atIndex + 1).trim();
+
+      // If mentionQuery has valid characters, trigger the search
+      if (mentionQuery) {
+        handleSearch(mentionQuery);
+      } else {
+        // If mentionQuery is empty (backspace cleared it), clear the search results
+        setSearchResult([]); // Clear search result when mentionQuery is empty
+      }
+    }
+    // setNewMessage(e.target.value);
 
     if (!socketConnected) return;
 
@@ -267,6 +331,70 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const otherUser = chatdata?.users?.find((x) => x?._id !== user?._id);
 
+  const insertMention = (username) => {
+    // Get the current value of the input field
+    const inputValue = newMessage;
+
+    // Find the position of the last '@' symbol
+    const atIndex = inputValue.lastIndexOf("@");
+
+    // Insert the username at the position of '@'
+    const updatedMessage = inputValue.slice(0, atIndex + 1) + username + " ";
+    // inputValue.slice(atIndex + 1);
+
+    // Set the updated message in the input
+    setNewMessage(updatedMessage);
+    setMentionComplete(true);
+    // Clear the search results after a mention is selected
+    setSearchResult([]);
+  };
+
+  // ===============================recording===================================
+
+  // Start Recording Function
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunks.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
+        setAudioBlob(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+    }
+  };
+
+  // Stop Recording Function
+  const stopRecording = async () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+
+      // Send the audio message when the recording stops
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
+        setAudioBlob(audioBlob);
+
+        // Ensure the audioBlob is passed to sendMessage after it's set
+        await sendMessage(audioBlob);
+      };
+    } else {
+      console.error("No mediaRecorder instance available to stop!");
+    }
+  };
+
   return (
     <>
       {chatWithUserData ? (
@@ -313,7 +441,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   </div>
                 </div>
 
-                <div style={{display:"flex",gap:"10px"}}>
+                <div style={{ display: "flex", gap: "10px" }}>
                   <QRCodeDisplay />
 
                   {/* Show ProfileModal when it's not a group chat */}
@@ -325,11 +453,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             ) : (
               /* Display the group chat name */
               <>
-              {chatdata?.chatName?.toUpperCase()}
-              <div style={{display:"flex",gap:"10px"}}>
-              <QRCodeDisplay />
-                
-                <UpdateGroupChatModal />
+                {chatdata?.chatName?.toUpperCase()}
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <QRCodeDisplay />
+
+                  <UpdateGroupChatModal />
                 </div>
               </>
             )}
@@ -430,7 +558,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   />
                 </Box>
               )}
-              <Flex alignItems="center">
+
+              {searchResult?.length > 0 &&
+                searchResult?.map((user) => (
+                  <UserListItem
+                    key={user._id}
+                    user={user}
+                    handleFunction={() => insertMention(user?.name)}
+                  />
+                ))}
+              <Flex
+                alignItems="center"
+                gap={2}
+                p={2}
+                bg="white"
+                borderRadius="md"
+              >
                 <IconButton
                   aria-label="emoji-picker"
                   icon={<FaSmile />}
@@ -444,30 +587,34 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   icon={<FaPaperclip />}
                   variant="ghost"
                   size="lg"
-                  as="label" // This turns the button into a file input label
-                  htmlFor="file-upload" // Associates the button with the hidden file input
+                  as="label"
+                  htmlFor="file-upload"
                   cursor="pointer"
                 />
                 <Input
                   type="file"
                   id="file-upload"
-                  display="none" // Hide the file input
+                  display="none"
                   onChange={handleFileChange}
                 />
+
                 <Input
                   variant="filled"
                   bg="#E0E0E0"
                   placeholder="Enter a message.."
                   value={newMessage}
                   onChange={typingHandler}
+                  flex="1" // Ensures the input field takes up available space
                 />
-                {/* <IconButton
-                  aria-label="send-message"
-                  icon={<FaPaperPlane />}
-                  onClick={sendMessage}
-                  variant="solid"
-                  colorScheme="blue"
-                /> */}
+
+                {/* Directly place AudioControls here */}
+                <AudioControls
+                  startRecording={startRecording}
+                  stopRecording={stopRecording}
+                  isRecording={isRecording}
+                />
+
+                
               </Flex>
 
               {showEmojiPicker && (

@@ -115,6 +115,23 @@
   display: none; /* For Chrome, Safari, and Opera */
 }
 
+.rc-menu {
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.rc-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.rc-menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+
 
 
   

@@ -14,6 +14,7 @@ import Message from "./Models/messagesModel.js"
 import QRCode from "qrcode"
 import generateImage from "./Routes/generateImage.js"
 
+
 dotenv.config()
 
 connectDB()
@@ -124,11 +125,11 @@ io.on("connection", (socket) => {
 
     })
 
-    socket.on("send-message", async ({ message, room }) => {
+    socket.on("send-message", async ({ message, room,reaction,sender }) => {
 
         console.log(room, "room")
 
-        socket.to(room).emit("receive-message", message)
+        socket.to(room).emit("receive-message", message )
         try {
             socket.to(room).emit("clearunread-count", {
                 message: "unread count socket"
@@ -166,7 +167,7 @@ io.on("connection", (socket) => {
                     console.log(otherUserData?.name, "otherUserData?.name")
                     // You can now use `otherUserData` for further operations
 
-                    await notificationService.sendNotification(`New Message from ${otherUserData?.name}`, message, otherUser);
+                    await notificationService.sendNotification(reaction ?`${otherUserData?.name} reacted ${reaction} on your message`:`New Message from ${otherUserData?.name}`, message , otherUser);
                 } else {
                     console.log('No other user found');
                 }
@@ -174,13 +175,16 @@ io.on("connection", (socket) => {
                 const usersToNotify = chatData?.users.filter(
                     user => user.toString() !== socket.request?.user?.userId.toString()
                 );
+              
+               let userWhosendMessage = await User.findById(socket.request?.user?.userId)
+              
 
 
 
                 for (const userId of usersToNotify) {
                     const userData = await User.findById(userId);
                     if (userData) {
-                        await notificationService.sendNotification(`New Message in ${chatData?.chatName}`, message, userId);
+                        await notificationService.sendNotification(reaction ? `${userWhosendMessage?.name} reacted ${reaction} on ${sender} message` :`New Message from ${userWhosendMessage?.name} in ${chatData?.chatName}`, message, userId);
                         console.log(`Notification sent to ${userData.name}`);
                     }
                 }

@@ -43,6 +43,7 @@ import UserListItem from "./UserListItem";
 import { io } from "socket.io-client";
 import InfiniteScroll from "react-infinite-scroll-component";
 import EmojiPicker from "emoji-picker-react";
+import ImageWithOptions from "./ImageWithOptions";
 // import {
 //   isLastMessage,
 //   isSameSender,
@@ -116,7 +117,7 @@ const ScrollableChat = ({
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isopen, setIsOpen] = useState(false);
-  const toast = useToast()
+  const toast = useToast();
 
   const onOpenModal = () => setIsOpen(true);
   const onCloseModal = () => setIsOpen(false);
@@ -126,6 +127,7 @@ const ScrollableChat = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setreaction] = useState(null);
   const [messageId, setmessageId] = useState(null);
+  const [senderName, setSenderName] = useState(null);
 
   const messageRefs = useRef([]);
 
@@ -168,10 +170,14 @@ const ScrollableChat = ({
     let data = await dispatch(
       editMessage({ messageId: messageId, reaction: emoji })
     );
+
     if (data?.payload?.success) {
-      // await dispatch(
-      //   getMessages({ chatId: chatdata?._id, offset: 0, page: 1 })
-      // );
+      socket.emit("send-message", {
+        reaction: emoji,
+        room: chatdata?._id,
+        sender: senderName,
+      });
+
       setFlag(!flag);
     }
 
@@ -303,14 +309,33 @@ const ScrollableChat = ({
                       <Text>
                         {m?.content ||
                           (m?.file && (
-                            <img
-                              style={{
-                                height: "200px",
-                                width: "200px",
-                                objectFit: "cover",
-                              }}
-                              src={m?.file}
-                            />
+                            <>
+                              {m?.file.includes("image") && (
+                                // <img
+                                //   style={{
+                                //     height: "200px",
+                                //     width: "200px",
+                                //     objectFit: "cover",
+                                //   }}
+                                //   src={m?.file}
+                                //   alt="Media"
+                                // />
+                                <div style={{ padding: "20px" }}>
+                                  {/* <h1>Image with Context Menu</h1> */}
+                                  <ImageWithOptions imageUrl={m?.file} />
+                                </div>
+
+                                // <Image
+                                // WithOptions imageUrl={m?.file}/>
+                              )}
+                              {m?.file.includes("video") && (
+                                <audio controls>
+                                  <source src={m?.file} type="audio/mpeg" />
+                                  Your browser does not support the audio
+                                  element.
+                                </audio>
+                              )}
+                            </>
                           ))}
                       </Text>
                       {/* <Text>emoi</Text> */}
@@ -369,7 +394,9 @@ const ScrollableChat = ({
                           // zIndex="tooltip" // Ensure it is above other elements
                         />
                         <MenuList>
-                          <MenuItem onClick={()=>handleCopy(m?.content)}>Copy</MenuItem>
+                          <MenuItem onClick={() => handleCopy(m?.content)}>
+                            Copy
+                          </MenuItem>
                           {m?.chat?.isGroupChat && (
                             <MenuItem
                               onClick={() => {
@@ -496,6 +523,7 @@ const ScrollableChat = ({
                     icon={<FaSmile />}
                     onClick={() => {
                       setmessageId(m?._id);
+                      setSenderName(m?.sender?.name);
                       setShowEmojiPicker(!showEmojiPicker);
                       console.log(m, "mmmmmmmmmmmmmmmmmm");
                     }}
