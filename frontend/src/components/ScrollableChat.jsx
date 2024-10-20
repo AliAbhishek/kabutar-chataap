@@ -338,12 +338,26 @@ const ScrollableChat = ({
                                 )}
 
                                 {/* Video Handling */}
-                                {m?.replyto?.file.includes("video") && (
+                                {m.replyto.file.includes("video") &&
+                                !m.replyto.file.endsWith(".webm") ? (
+                                  <div style={{ padding: "20px" }}>
+                                    <video
+                                      controls
+                                      style={{
+                                        width: "350px", // Adjust width as needed
+                                        borderRadius: "8px", // Optional: for rounded corners
+                                        boxShadow:
+                                          "0px 2px 5px rgba(0, 0, 0, 0.1)", // Optional: subtle shadow effect
+                                      }}
+                                    >
+                                      <source src={m.replyto.file} type="video/webm" />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video>
+                                  </div>
+                                ) : (
                                   <audio controls>
-                                    <source
-                                      src={m?.replyto?.file}
-                                      type="audio/mpeg"
-                                    />
+                                    <source src={m.replyto.file} type="audio/mpeg" />
                                     Your browser does not support the audio
                                     element.
                                   </audio>
@@ -443,25 +457,39 @@ const ScrollableChat = ({
                                   >
                                     PDF
                                   </div>
-
                                   <iframe
                                     src={m.file}
                                     style={{
-                                      // width: "100%",
-                                      // height: "400px",
+                                      width: "100%", // Ensure the iframe fits well
+                                      height: "400px", // Specify a height
                                       border: "1px solid black",
                                     }}
                                   />
                                 </div>
-                              ) : null}
-
-                              {m?.file.includes("video") && (
+                              ) : m.file.includes("video") &&
+                                !m.file.endsWith(".webm") ? (
+                                <div style={{ padding: "20px" }}>
+                                  <video
+                                    controls
+                                    style={{
+                                      width: "350px", // Adjust width as needed
+                                      borderRadius: "8px", // Optional: for rounded corners
+                                      boxShadow:
+                                        "0px 2px 5px rgba(0, 0, 0, 0.1)", // Optional: subtle shadow effect
+                                    }}
+                                  >
+                                    <source src={m.file} type="video/webm" />
+                                    Your browser does not support the video tag.
+                                  </video>
+                                </div>
+                              ) : (
                                 <audio controls>
                                   <source src={m?.file} type="audio/mpeg" />
                                   Your browser does not support the audio
                                   element.
                                 </audio>
                               )}
+
                               {m?.file.includes("raw") && (
                                 <div
                                   style={{
@@ -482,7 +510,7 @@ const ScrollableChat = ({
                                   <div
                                     style={{
                                       fontSize: "30px", // Size of the folder icon
-                                      marginRight: "10px", // Space between the icon and audio
+                                      marginRight: "10px", // Space between the icon and text
                                     }}
                                   >
                                     <span
@@ -496,15 +524,11 @@ const ScrollableChat = ({
                                   </div>
                                   <span>Download Folder</span>{" "}
                                 </div>
-                                // <audio controls>
-                                //   <source src={m?.file} type="audio/mpeg" />
-                                //   Your browser does not support the audio
-                                //   element.
-                                // </audio>
                               )}
                             </>
                           ))}
                       </Text>
+
                       {/* <Text>emoi</Text> */}
                     </Tooltip>
 
